@@ -54,3 +54,54 @@ Example
     Explain the parameters
 
     ## API 1.2 Logout
+
+### API Prototype
+
+Within an API section, you can specify the prototype of your API with the command below:
+
+    {api} VERB URL
+    
+Where VERB is the HTTP verb. For example:
+
+    {api} POST /users/login
+    
+### Parameter list
+
+A parameter list item can be constructed with the command below:
+
+    {x}    pname    ptype    explanation
+
+Where fields are
+- x is the type of parameter 
+    - *?* for optional parameters
+    - *!* for mandatory parameters
+    - *?$* for optional parameters which access requires some authentication
+    - *!$* for mandatory parameters which access requires some authentication
+    - *-* for neutral parameter
+- pname is the name of parameter
+- ptype is the type of parameter
+- explanation is some free markdown. It may contain newlines, but no empty lines
+
+The separator between fields is four spaces by default, but can be changed in the command line and the driver.
+
+Example:
+
+    ## API 1.1 Login
+    
+    ** URL
+    {api} POST /users/login
+    ** Post request parameters
+    {!}    username    @string    The user name
+    {!}    password    @string    The password. Rules are
+    - should *at least* contain 8 characters
+    - should *not* contain the string Justin Bieber
+    {?}    email    @string    The email of the user
+    ** JSON response parameters
+    {!$}    userid    @userId    The userid, only if authentication succeeded
+    **
+
+#### Enumeration
+
+A list of value with explanation can be constructed with
+
+    {-:value}    explanation
