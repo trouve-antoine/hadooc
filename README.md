@@ -4,7 +4,8 @@ Markdown with domain specific extensions to easily generate documentation for HT
 ## Command Line Interface
 
 To get help:
-    ./hadoo-cli --help
+
+    ./hadooc-cli.js --help
 
 ## Markdown extensions
 
