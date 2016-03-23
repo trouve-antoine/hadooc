@@ -46,6 +46,7 @@ program
   .option('-s, --separator <string>', 'The separator to distinguish between fields. Default to "    " (4 spaces)')
   .option('-t, --theme <themename>', 'The name of a preset CSS to embed into the output HTML file. Themes are overriden by option -b. Default to "default"')
   .option('-l, --list-themes', 'Prints the list of available themes and exits', listThemes)
+  .option('-g, --language <locale>', 'Sets the locale for generated HTML')
   .action(function(file) {
     var css = program.css | "hadooc-default.css"
 
@@ -53,7 +54,8 @@ program
       charset: program.charset || 'utf8',
       separator: program.separator || "    ",
       embeddedCssPath: program['embedded-css'],
-      externalCssUrl: program['external-css']
+      externalCssUrl: program['external-css'],
+      locale: program.language || "en"
     }
 
     if( !conf.embeddedCssPath ) {

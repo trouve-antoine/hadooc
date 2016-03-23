@@ -7,6 +7,8 @@
 
 
 function httpApiDocumentationCompiler(lines, conf){
+  if(lines.constructor!=Array) { throw 'Please specify an array of lines in input.' }
+
   if(!conf) {
     conf = {
       separator: "    "
@@ -19,7 +21,23 @@ function httpApiDocumentationCompiler(lines, conf){
   var marked = marked || require('marked');
   if(!marked) { throw 'Unable to load marked.' }
 
-  if(lines.constructor!=Array) { throw 'Please specify an array of lines in input.' }
+  var localize = new require('localize')({
+    "optional": {
+      "ja": "省略可能",
+    },
+    "mandatory": {
+      "ja": "必須",
+    },
+    "protected": {
+      "ja": "認証必須"
+    },
+    "extended code": {
+      "ja": "拡張ステータス"
+    }
+  })
+  localize.setLocale(conf.locale || "en")
+
+  function translate(s) { return localize.translate(s) }
 
   function includes(s,p){ return s.indexOf(p) != -1 }
   function startsWith(s,p){ return s.slice(0,p.length)==p }
@@ -207,16 +225,16 @@ function httpApiDocumentationCompiler(lines, conf){
       }
       var small = ""
       if(content.xCode !== undefined) {
-        small = "<small>拡張ステータス:"+content.xCode+"</small><br>"
+        small = "<small>" + translate("extended code") + ":"+content.xCode+"</small><br>"
       }
       lines.push('<tr><td><span class="http-status-code '+variantClassName+'">'+content.code+'</span></td><td>'+small+marked(content.desc)+'</td></tr>')
       break;
     case 'param':
-      var smallText = ""
-      if(content.isMandatory) { smallText += "必須" }
-      if(content.isProtected) { smallText += "認証必須" }
-      if(content.isOptional ){ smallText += "省略可能" }
-      smallText = smallText && ("<small>"+smallText+"</small>")
+      var smallTexts = []
+      if(content.isMandatory) { smallTexts.push(translate("mandatory")) }
+      if(content.isProtected) { smallTexts.push(translate("protected")) }
+      if(content.isOptional ) { smallTexts.push(translate("optional")) }
+      smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
       lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+marked(content.paramType)+'</td><td>'+marked(content.desc)+'</td></tr>')
       break;
     case 'string':
