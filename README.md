@@ -60,19 +60,19 @@ Example
 Within an API section, you can specify the prototype of your API with the command below:
 
     {api} VERB URL
-    
+
 Where VERB is the HTTP verb. For example:
 
-    {api} POST /users/login
-    
+    {api} POST    /users/login
+
 ### Parameter list
 
 A parameter list item can be constructed with the command below:
 
-    {x}    pname    ptype    explanation
+    {x} pname    ptype    explanation
 
 Where fields are
-- x is the type of parameter 
+- x is the type of parameter
     - *?* for optional parameters
     - *!* for mandatory parameters
     - *?$* for optional parameters which access requires some authentication
@@ -80,28 +80,94 @@ Where fields are
     - *-* for neutral parameter
 - pname is the name of parameter
 - ptype is the type of parameter
-- explanation is some free markdown. It may contain newlines, but no empty lines
+- explanation. It may contain any standard markdown (no hadooc extension). It may contain newlines, but no empty lines
 
-The separator between fields is four spaces by default, but can be changed in the command line and the driver.
+The separator between the last three fields is "    " (four spaces) by default, but can be changed in the command line and the driver.
+Spaces after the separator are trimmed out.
+
+A list ends with ab empty line.
 
 Example:
 
     ## API 1.1 Login
-    
+
     ** URL
+
     {api} POST /users/login
+
     ** Post request parameters
-    {!}    username    @string    The user name
-    {!}    password    @string    The password. Rules are
+
+    {!} username    @string    The user name
+    {!} password    @string    The password. Rules are
     - should *at least* contain 8 characters
     - should *not* contain the string Justin Bieber
-    {?}    email    @string    The email of the user
+    {?} email       @string    The email of the user
+
     ** JSON response parameters
-    {!$}    userid    @userId    The userid, only if authentication succeeded
+
+    {!$} userid     @string    The userid, only if authentication succeeded
+
     **
 
 #### Enumeration
 
-A list of value with explanation can be constructed with
+An item of a list of value with explanation can be constructed with
 
-    {-:value}    explanation
+    {-:value} explanation
+
+The explanation may contain any standard markdown (no hadooc extension).
+A list of enumeration ends with am empty line.
+
+Example
+
+    ** User Roles
+    {-:root} the king
+    - can read everything
+    - can write everywhere
+    {-:nobody} a peasant
+    {-:other} be careful
+
+#### HTTP Codes
+
+A list of HTTP status codes and explanation can be built wit the syntax below:
+
+    {http:CODE} explanation
+
+Where
+- CODE is the HTTP code (e.g. 200, 400)
+- explanation is free regular markdown (no hadooc extension)
+
+The list ends with an empty line
+
+Example:
+
+    ** HTTP Response Status Codes
+
+    {http:200} Success
+    {http:403} The user is logged in, but does not have enough permission
+    {http:500} Unable to access the data:
+    - the database is off
+    - the FBI was listening to the communication
+    {http:503} The janitor has tripped on the server's plug, again.
+
+    **
+
+#### Source code (JSON Only)
+
+Additionaly to marked's ''''X (four single quotes) syntax, the hadooc compiler has its own construct for code blocks:
+
+    {code:X}
+    Your code
+    {/code}
+
+Where X is the language (only json is supported for now).
+This construct may disapear in favor of four single quotes.
+
+Example:
+
+    {code:json}
+    {
+      "data": [ { "data1": "value1" } ],
+      "dataNb": 1
+    }
+    {/code}

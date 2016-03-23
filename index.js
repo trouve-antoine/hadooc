@@ -39,7 +39,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isMetadataMarker = function(l) { return l === "---" }
   prefix.isApiSection = function(l){ return startsWith(l,"** ") }
   prefix.isApi = function(l){ return startsWith(l, "{api}") }
-  prefix.isParameter = function(l) { return /!\$|\?\$|!|\?|\-/.test(l) }
+  prefix.isParameter = function(l) { return /{!\$|\?\$|!|\?|\-}/.test(l) }
   prefix.isEnum = function(l) { return startsWith(l, "{-:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
@@ -60,8 +60,9 @@ function httpApiDocumentationCompiler(lines, conf){
     }
   }
   field.parameter = function(data) {
-    var prefix = data.slice(0,3)
-    data = data.slice(3).trim()
+    var braceAt = data.indexOf('}')
+    var prefix = data.slice(0,braceAt+1)
+    data = data.slice(braceAt+1).trim()
     var spaceAt = data.indexOf(conf.separator)
     var paramName = data.slice(0, spaceAt).trim()
     data = data.slice(spaceAt).trim()
