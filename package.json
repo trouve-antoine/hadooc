@@ -1,0 +1,35 @@
+{
+  "name": "hadooc",
+  "version": "1.0.0",
+  "description": "Markdown with domain specific extensions to easily generate documentation for HTTP API. Contains the language specification as well as the compiler to HTML. Written in Javascript for Node.js.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {
+    "commander": "^2.9.0",
+    "localize": "^0.4.7",
+    "marked": "^0.3.5"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trouve-antoine/hadooc.git"
+  },
+  "keywords": [
+    "mardown",
+    "http",
+    "api",
+    "compiler",
+    "html"
+  ],
+  "author": "Antoine Trouvé",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/trouve-antoine/hadooc/issues"
+  },
+  "homepage": "https://github.com/trouve-antoine/hadooc"
+}
