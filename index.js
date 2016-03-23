@@ -1,6 +1,18 @@
 #! /usr/bin/env node
 
-function httpApiDocumentationCompiler(lines){
+// configuration = {
+//    separator: " "
+// }
+//
+
+
+function httpApiDocumentationCompiler(lines, conf){
+  if(!conf) {
+    conf = {
+      separator: "    "
+    }
+  }
+
   var outputLines = []
 
   // Gets marked from node.js or the browser
@@ -9,6 +21,7 @@ function httpApiDocumentationCompiler(lines){
 
   if(lines.constructor!=Array) { throw 'Please specify an array of lines in input.' }
 
+  function includes(s,p){ return s.indexOf(p) != -1 }
   function startsWith(s,p){ return s.slice(0,p.length)==p }
   function contentAfter(s,p){ return s.slice(p.length) }
 
@@ -23,9 +36,10 @@ function httpApiDocumentationCompiler(lines){
   }
 
   var prefix = {};
+  prefix.isMetadataMarker = function(l) { return l === "---" }
   prefix.isApiSection = function(l){ return startsWith(l,"** ") }
   prefix.isApi = function(l){ return startsWith(l, "{api}") }
-  prefix.isParameter = function(l) { return startsWith(l, "{!}") || startsWith(l, "{?}") || startsWith(l, "{$}") || startsWith(l, "{-}") }
+  prefix.isParameter = function(l) { return /!\$|\?\$|!|\?|\-/.test(l) }
   prefix.isEnum = function(l) { return startsWith(l, "{-:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
@@ -35,7 +49,7 @@ function httpApiDocumentationCompiler(lines){
   field.apiSectionName = function(l){ return contentAfter(l, "** ") }
   field.api = function(l){
     var lAfter = contentAfter(l,"{api}").trim()
-    var spaceAt = lAfter.indexOf(' ')
+    var spaceAt = lAfter.indexOf(conf.separator)
     var httpVerb = lAfter.slice(0,spaceAt)
     var url = htmlEscape(lAfter.slice(spaceAt+1))
     if(httpVerb==="") { throw 'Empty HTTP verb in ' + l }
@@ -48,10 +62,10 @@ function httpApiDocumentationCompiler(lines){
   field.parameter = function(data) {
     var prefix = data.slice(0,3)
     data = data.slice(3).trim()
-    var spaceAt = data.indexOf(' ')
+    var spaceAt = data.indexOf(conf.separator)
     var paramName = data.slice(0, spaceAt).trim()
     data = data.slice(spaceAt).trim()
-    spaceAt = data.indexOf(' ')
+    spaceAt = data.indexOf(conf.separator)
     var paramType = data.slice(0, spaceAt).trim()
     data = data.slice(spaceAt).trim()
     return {
@@ -59,9 +73,9 @@ function httpApiDocumentationCompiler(lines){
       name: paramName,
       paramType: paramType,
       desc: data,
-      isMandatory: (prefix=='{!}'),
-      isProtected: (prefix=='{$}'),
-      isOptional:  (prefix=='{?}'),
+      isMandatory: includes(prefix, "!"),
+      isProtected: includes(prefix, "$"),
+      isOptional:  includes(prefix, "?")
     }
   }
   field.httpCode = function(l) {
@@ -102,6 +116,14 @@ function httpApiDocumentationCompiler(lines){
       type: 'sourceCode',
       sourceCode: data
     }
+  }
+
+  var pushMetadata = function(l, metadata) {
+    var matches = /([a-zA-z0-1\-_]+):(.*)/g.exec(l)
+    if(!matches) { throw "Unable to parse the metadata line: " + l }
+    var key = matches[1].toLowerCase()
+    var value = matches[2]
+    metadata[key] = value
   }
 
   var printApiSectionAsArray = function(apiSection, previousSection, nextSection) {
@@ -190,9 +212,9 @@ function httpApiDocumentationCompiler(lines){
       break;
     case 'param':
       var smallText = ""
-      if(content.isMandatory) { smallText = "必須" }
-      else if(content.isProtected) { smallText = "認証必須" }
-      else if(content.isOptional ){ smallText = "省略可能" }
+      if(content.isMandatory) { smallText += "必須" }
+      if(content.isProtected) { smallText += "認証必須" }
+      if(content.isOptional ){ smallText += "省略可能" }
       smallText = smallText && ("<small>"+smallText+"</small>")
       lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+marked(content.paramType)+'</td><td>'+marked(content.desc)+'</td></tr>')
       break;
@@ -289,11 +311,20 @@ function httpApiDocumentationCompiler(lines){
     }
   }
 
+  var insideMetadata = false
+  var metadata = undefined
   for(var i=0; i<lines.length; i++) {
     var l = lines[i].trim()
-    // var l = lines[i]
 
-    if(prefix.isApiSection(l)) {
+    if(metadata === undefined) {
+      metadata = {}
+      if(prefix.isMetadataMarker(l)) { insideMetadata = true }
+    } else if(insideMetadata) {
+      if(prefix.isMetadataMarker(l)) { insideMetadata = false }
+      else {
+        pushMetadata(l, metadata)
+      }
+    } else if(prefix.isApiSection(l)) {
       flushOtherLines()
       pushCurrentApiSection()
       currentApiSection = { name: field.apiSectionName(l), contents: [] }
@@ -384,13 +415,16 @@ function httpApiDocumentationCompiler(lines){
   }
 
   flushApiSections()
-  if(outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
 
-  return outputLines;
+  if(!outputLines || outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
+
+  return { metadata: metadata,  outputLines: outputLines }
 }
 
-function processStdin(){
-  process.stdin.setEncoding('utf8');
+function processStdin(hadoocConf, callback){
+  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+
+  process.stdin.setEncoding(charset);
 
   var dataFromStdin = ""
   process.stdin.on('readable', function() {
@@ -402,21 +436,83 @@ function processStdin(){
 
   process.stdin.on('end', function() {
     var dataLines = dataFromStdin.split("\n")
-    var outputLines = httpApiDocumentationCompiler(dataLines)
-    for(var i=0; i<outputLines.length; i++) {
-      console.log(outputLines[i])
-    }
+    var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
+    wrapHtmlBody(compiled.metadata, compiled.outputLines, hadoocConf, callback)
   });
 }
 
-processStdin()
+// hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
+function processFile(inputFilePath, hadoocConf, callback) {
+  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
-// require('fs').readFile('./test_api.md', 'utf8', function(err, data){
-//   if(err) { throw err.message }
-//   var dataLines = data.split("\n")
-//   var outputLines = httpApiDocumentationCompiler(dataLines)
-//   if(outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
-//   for(var i=0; i<outputLines.length; i++) {
-//     console.log(outputLines[i])
-//   }
-// })
+  require('fs').readFile(inputFilePath, charset, function(err, data){
+    if(err) { throw err.message }
+    var dataLines = data.split("\n")
+    var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
+    wrapHtmlBody(compiled.metadata, compiled.outputLines, hadoocConf, callback)
+  })
+}
+
+function wrapHtmlBody(metadata, bodyLines, hadoocConf, callback) {
+  var embeddedCssPath = hadoocConf.embeddedCssPath
+  var externalCssUrl = hadoocConf.externalCssUrl
+
+  var title = metadata.title || 'HTTP API Documentation'
+  var subTitle = metadata.subtitle || metadata['sub-title']
+  var date = metadata.date
+  var version = metadata.version
+
+  var htmlPrefixLines = [
+    '<!doctype html>',
+    '<html>',
+    '<head>',
+    '  <meta charset="utf-8">',
+    '  <title>' + title + '</title>'
+  ]
+
+  if(externalCssUrl) {
+    htmlPrefixLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
+  }
+
+  var titleStr = title
+
+  if(subTitle) {
+    titleStr += '<br><small class="sub-title">' + subTitle + '</small>'
+  }
+  if(version) {
+    titleStr += '<br><small class="version">v.' + version + '</small>'
+  }
+  if(date) {
+    titleStr += '<br><small class="date">' + date + '</small>'
+  }
+
+  var linesAfterCss = [
+    '</head>',
+    '<body>',
+    '<h1>' + titleStr + '</h1>'
+  ].concat(
+    bodyLines,
+    [ '</body>', '</html>']
+  )
+
+  if(embeddedCssPath) {
+    htmlPrefixLines.push('<style>')
+    require('fs').readFile(embeddedCssPath, charset, function(err, data){
+      if(err) { throw err.message }
+      htmlPrefixLines.push(data)
+      htmlPrefixLines.push('</style>')
+      htmlPrefixLines = htmlPrefixLines.concat(linesAfterCss)
+      callback.call(null, htmlPrefixLines)
+    })
+  } else {
+    htmlPrefixLines = htmlPrefixLines.concat(linesAfterCss)
+    callback.call(null, htmlPrefixLines)
+  }
+}
+
+module.exports = {
+  processStdin: processStdin,
+  processFile: processFile
+}
+
+// processStdin( { separator: "    " } )
