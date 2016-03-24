@@ -9,7 +9,7 @@ To get help:
 
 or
 
-   ./node_modules/hadooc/hadooc-cli.js --help
+    ./node_modules/hadooc/hadooc-cli.js --help
 
 ## Markdown extensions
 
