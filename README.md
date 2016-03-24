@@ -5,7 +5,11 @@ Markdown with domain specific extensions to easily generate documentation for HT
 
 To get help:
 
-    ./hadooc-cli.js --help
+    hadooc --help
+
+or
+
+   ./node_modules/hadooc/hadooc-cli.js --help
 
 ## Markdown extensions
 
@@ -86,7 +90,7 @@ Where fields are
 The separator between the last three fields is "    " (four spaces) by default, but can be changed in the command line and the driver.
 Spaces after the separator are trimmed out.
 
-A list ends with ab empty line.
+A list ends with an empty line.
 
 Example:
 
