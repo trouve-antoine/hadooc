@@ -3,13 +3,16 @@ Markdown with domain specific extensions to easily generate documentation for HT
 
 ## Command Line Interface
 
-To get help:
+The file hadooc-cli.js contains a command line interface (CLI) for hadooc compiler.
+To get help execute it with parameter "--help" as below:
+
+    ./hadooc-cli.js --help
+
+If you have installed hadooc via npm, the CLI should be available in the path:
 
     hadooc --help
 
-or
-
-    ./node_modules/hadooc/hadooc-cli.js --help
+If not, try to execute npm link manually.
 
 ## Markdown extensions
 
