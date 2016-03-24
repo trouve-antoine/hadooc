@@ -28,12 +28,13 @@ var themes = {
   }
 }
 
-function listThemes() {
+function listThemesAndExit() {
   var themesList = themes.getList()
   console.log("List of themes:")
   for(var themeName in themesList) {
     console.log("  " + themeName)
   }
+  process.exit()
 }
 
 
@@ -45,11 +46,9 @@ program
   .option('-c, --charset <charset>', 'The name of the charset used to read the input file. Default to utf8')
   .option('-s, --separator <string>', 'The separator to distinguish between fields. Default to "    " (4 spaces)')
   .option('-t, --theme <themename>', 'The name of a preset CSS to embed into the output HTML file. Themes are overriden by option -b. Default to "default"')
-  .option('-l, --list-themes', 'Prints the list of available themes and exits', listThemes)
+  .option('-l, --list-themes', 'Prints the list of available themes and exits', listThemesAndExit)
   .option('-g, --language <locale>', 'Sets the locale for generated HTML')
   .action(function(file) {
-    var css = program.css | "hadooc-default.css"
-
     var conf = {
       charset: program.charset || 'utf8',
       separator: program.separator || "    ",
