@@ -17,6 +17,11 @@ function httpApiDocumentationCompiler(lines, conf){
 
   var outputLines = []
 
+  var debug = function(s){};
+  if(conf.debug) {
+    debug = function(s) { console.log(s) }
+  }
+
   // Gets marked from node.js or the browser
   var marked = marked || require('marked');
   if(!marked) { throw 'Unable to load marked.' }
@@ -57,7 +62,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isMetadataMarker = function(l) { return l === "---" }
   prefix.isApiSection = function(l){ return startsWith(l,"** ") }
   prefix.isApi = function(l){ return startsWith(l, "{api}") }
-  prefix.isParameter = function(l) { return /{!\$|\?\$|!|\?|\-}/.test(l) }
+  prefix.isParameter = function(l) { return /{!\$|\?\$|\$|!|\?|\-}/.test(l) }
   prefix.isEnum = function(l) { return startsWith(l, "{-:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
@@ -71,11 +76,13 @@ function httpApiDocumentationCompiler(lines, conf){
     var httpVerb = lAfter.slice(0,spaceAt)
     var url = htmlEscape(lAfter.slice(spaceAt+1))
     if(httpVerb==="") { throw 'Empty HTTP verb in ' + l }
-    return {
+    var api = {
       type: 'api',
       verb: httpVerb,
       url: url
     }
+    debug("Adds API: " + api)
+    return api
   }
   field.parameter = function(data) {
     var braceAt = data.indexOf('}')
@@ -87,7 +94,7 @@ function httpApiDocumentationCompiler(lines, conf){
     spaceAt = data.indexOf(conf.separator)
     var paramType = data.slice(0, spaceAt).trim()
     data = data.slice(spaceAt).trim()
-    return {
+    var parameter = {
       type: 'param',
       name: paramName,
       paramType: paramType,
@@ -96,6 +103,8 @@ function httpApiDocumentationCompiler(lines, conf){
       isProtected: includes(prefix, "$"),
       isOptional:  includes(prefix, "?")
     }
+    debug("Adds parameter: " + parameter)
+    return parameter
   }
   field.httpCode = function(l) {
     var cbraceAt = l.indexOf('} ')
@@ -148,13 +157,19 @@ function httpApiDocumentationCompiler(lines, conf){
   var printApiSectionAsArray = function(apiSection, previousSection, nextSection) {
     var lines = []
 
-    if(previousSection===undefined) { lines.push('<table class="api">') }
+    var isApiSection = apiSection.name
+    var hasPreviousSection = previousSection && (previousSection.name !== undefined)
+    var hasNextSection = nextSection && (nextSection.name !== undefined)
 
-    lines = lines.concat([
-      '<tr>',
-      '<td>'+apiSection.name+'</td>',
-      '<td>'
-    ])
+    if( !hasPreviousSection && isApiSection) { lines.push('<table class="hadooc api">') }
+
+    if(isApiSection) {
+      lines = lines.concat([
+        '<tr>',
+        '<td>'+apiSection.name+'</td>',
+        '<td>'
+      ])
+    }
 
     for(var i=0; i<apiSection.contents.length; i++) {
       var newLines = printApiSectionContentAsArray(
@@ -165,12 +180,14 @@ function httpApiDocumentationCompiler(lines, conf){
       lines = lines.concat(newLines)
     }
 
-    lines = lines.concat([
-      '</td>',
-      '</tr>'
-    ])
+    if(isApiSection) {
+      lines = lines.concat([
+        '</td>',
+        '</tr>'
+      ])
+    }
 
-    if(nextSection===undefined) { lines.push('</table>') }
+    if( !hasNextSection && isApiSection ) { lines.push('</table>') }
 
     return lines
   }
@@ -185,10 +202,10 @@ function httpApiDocumentationCompiler(lines, conf){
     if(previousContentType!=content.type){
       switch(content.type) {
       case 'httpCode':
-        lines.push('<table class="http-status-codes">')
+        lines.push('<table class="hadooc http-status-codes">')
         break;
       case 'param':
-        lines.push('<table class="params">')
+        lines.push('<table class="hadooc params">')
         break;
       case 'string':
         // Nothing
@@ -197,7 +214,7 @@ function httpApiDocumentationCompiler(lines, conf){
         // Nothing
         break;
       case 'enum':
-        lines.push('<table class="enum">')
+        lines.push('<table class="hadooc enum">')
         break;
       case 'sourceCode':
         // Nothing
@@ -330,6 +347,80 @@ function httpApiDocumentationCompiler(lines, conf){
     }
   }
 
+  var processHadoocLine = function(l, i) {
+    if(!currentApiSection) {
+      debug("New headless section")
+      currentApiSection = { contents: [] }
+    }
+
+    var isInsideApiSection = (currentApiSection.name !== undefined)
+
+    if(prefix.isApi(l)) {
+      pushApiSectionContent(field.api(l))
+    } else if(prefix.isHttpCode(l)) {
+      var pData = l
+      for(var j=i+1; j<lines.length ;j++){
+        var jl = lines[j].trim()
+        if(jl=="") { break }
+        else if(jl[0]==='{') { break } // }
+        else if(jl[0]==='#') { break }
+        else { pData += '\n'+jl }
+      }
+      i = j-1
+      pushApiSectionContent(field.httpCode(pData))
+    } else if(prefix.isEnum(l)) {
+      var pData = l
+      for(var j=i+1; j<lines.length ;j++){
+        var jl = lines[j].trim()
+        if(jl=="") { break }
+        else if(jl[0]==='{') { break } // }
+        else if(jl[0]==='#') { break }
+        else { pData += '\n'+jl }
+      }
+      i = j-1
+      pushApiSectionContent(field.enum(pData))
+    } else if(prefix.isParameter(l)) {
+      var pData = l
+      var wasList = false
+      for(var j=i+1; j<lines.length ;j++){
+        var jl = lines[j].trim()
+        if(jl=="") { break }
+        else if(jl[0]=='{') { break } // }
+        else if(jl[0]=='#') { break }
+        else { pData += '\n' + jl }
+      }
+      if(wasList) { pData += '</ul>'; wasList=false }
+      i = j-1
+      pushApiSectionContent(field.parameter(pData))
+    } else if(prefix.isApiEnd(l)) {
+      flushApiSections()
+      if(outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
+    } else if(startsWith(l, "#") && isInsideApiSection) {
+      flushApiSections()
+      i--
+    } else if(startsWith(l,'#') && !isInsideApiSection) {
+      var nbSharp=0
+      for(nbSharp=0; l[nbSharp]=='#'; nbSharp++) {}
+      theLine = '<h'+(nbSharp+1)+'>'+l.slice(nbSharp)+'</h'+(nbSharp+1)+'>'
+      pushApiSectionContent({ type: 'string', data: theLine })
+    } else if(prefix.isSourceCode(l)) {
+      var pDataArray = []
+      for(i=i+1; i<lines.length ;i++){
+        var ll = lines[i].trim()
+        if(ll==="{/code}") { break }
+        else {
+          var sourceCodeLine = lines[i]
+          pDataArray.push(sourceCodeLine)
+        }
+      }
+      pushApiSectionContent(field.sourceCode(pDataArray.join('\n')))
+    } else {
+      pushApiSectionContent({ type: 'string', data: lines[i] })
+    }
+
+    return i
+  }
+
   var insideMetadata = false
   var metadata = undefined
   for(var i=0; i<lines.length; i++) {
@@ -347,88 +438,10 @@ function httpApiDocumentationCompiler(lines, conf){
       flushOtherLines()
       pushCurrentApiSection()
       currentApiSection = { name: field.apiSectionName(l), contents: [] }
+      debug("New section: " + currentApiSection)
     } else {
-      if(currentApiSection) {
-        if(prefix.isApi(l)) {
-          pushApiSectionContent(field.api(l))
-        } else if(prefix.isParameter(l)) {
-          var pData = l
-          var wasList = false
-          for(var j=i+1; j<lines.length ;j++){
-            var jl = lines[j].trim()
-            if(jl=="") { break }
-            else if(jl[0]=='{') { break } // }
-            else if(jl[0]=='#') { break }
-            else { pData += '\n' + jl }
-          }
-          if(wasList) { pData += '</ul>'; wasList=false }
-          i = j-1
-          pushApiSectionContent(field.parameter(pData))
-        } else if(prefix.isHttpCode(l)) {
-          var pData = l
-          for(var j=i+1; j<lines.length ;j++){
-            var jl = lines[j].trim()
-            if(jl=="") { break }
-            else if(jl[0]==='{') { break } // }
-            else if(jl[0]==='#') { break }
-            else { pData += '\n'+jl }
-          }
-          i = j-1
-          pushApiSectionContent(field.httpCode(pData))
-        } else if(prefix.isEnum(l)) {
-          var pData = l
-          for(var j=i+1; j<lines.length ;j++){
-            var jl = lines[j].trim()
-            if(jl=="") { break }
-            else if(jl[0]==='{') { break } // }
-            else if(jl[0]==='#') { break }
-            else { pData += '\n'+jl }
-          }
-          i = j-1
-          pushApiSectionContent(field.enum(pData))
-        } else if(prefix.isApiEnd(l)) {
-          flushApiSections()
-          if(outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
-        } else if(startsWith(l, "#")) {
-          flushApiSections()
-          i--
-        } else if(prefix.isSourceCode(l)) {
-          var pDataArray = []
-          for(i=i+1; i<lines.length ;i++){
-            var ll = lines[i].trim()
-            if(ll==="{/code}") { break }
-            else {
-              var sourceCodeLine = lines[i]
-              pDataArray.push(sourceCodeLine)
-            }
-          }
-          pushApiSectionContent(field.sourceCode(pDataArray.join('\n')))
-        } else {
-          pushApiSectionContent({ type: 'string', data: lines[i] })
-        }
-      } else {
-        var theLine = lines[i]
-        if(startsWith(l,'{code:')) {
-          var pDataArray = []
-          for(i=i+1; i<lines.length ;i++){
-            var ll = lines[i].trim()
-            if(ll==="{/code}") { break }
-            else {
-              var sourceCodeLine = lines[i]
-              pDataArray.push(sourceCodeLine)
-            }
-          }
-          theLine = '<pre class="code">' + pDataArray.join('\n') + '</pre>'
-        }
-        else if(l==='{/code}') { throw 'Unexpected pre element' }
-        else if(startsWith(l,'#')) {
-          var nbSharp=0
-          for(nbSharp=0; l[nbSharp]=='#'; nbSharp++) {}
-          theLine = '<h'+(nbSharp+1)+'>'+l.slice(nbSharp)+'</h'+(nbSharp+1)+'>'
-        }
-
-        pushOtherLine(theLine)
-      }
+      debug("Line " + i + ": " + l)
+      i = processHadoocLine(l, i)
     }
     //console.log(currentApiSection)
   }
