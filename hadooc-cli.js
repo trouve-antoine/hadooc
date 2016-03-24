@@ -7,7 +7,7 @@ var hadooc = require('./')
 var path = require('path')
 var fs = require('fs')
 
-var homeFolder = path.dirname(process.argv[1])
+var homeFolder = path.dirname(__filename)
 
 var themes = {
   folder: path.join(homeFolder, "themes"),
@@ -69,8 +69,9 @@ program
 
     var writeOutput = function(outputLines) {
       if(program.output) {
-        // write in output file
-        console.log("TODOU")
+        require('fs').writeFile(program.output, outputLines.join("\n"), function(err) {
+          if(err) { throw err.message }
+        })
       } else {
         // use stdout by default
         for(var i=0; i<outputLines.length; i++) {
