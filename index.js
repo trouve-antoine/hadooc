@@ -63,7 +63,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isApiSection = function(l){ return startsWith(l,"** ") }
   prefix.isApi = function(l){ return startsWith(l, "{api}") }
   prefix.isParameter = function(l) { return /{!\$|\?\$|\$|!|\?|\-}/.test(l) }
-  prefix.isEnum = function(l) { return startsWith(l, "{-:") }
+  prefix.isEnum = function(l) { return startsWith(l, "{-:") || startsWith(l, "{=:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
   prefix.isSourceCode = function(l){ return startsWith(l, "{code:") }
@@ -135,7 +135,8 @@ function httpApiDocumentationCompiler(lines, conf){
     return {
       type: 'enum',
       value: value,
-      desc: l.slice(cbraceAt+1)
+      desc: l.slice(cbraceAt+1),
+      xtype: ss[0] == "-" ? "verb" : "bold",
     }
   }
 
@@ -154,7 +155,7 @@ function httpApiDocumentationCompiler(lines, conf){
     metadata[key] = value
   }
 
-  var printApiSectionAsArray = function(apiSection, previousSection, nextSection) {
+  var printApiSectionAsArray = function(apiSection, previousSection, nextSection, pushHeading) {
     var lines = []
 
     var isApiSection = apiSection.name
@@ -175,7 +176,8 @@ function httpApiDocumentationCompiler(lines, conf){
       var newLines = printApiSectionContentAsArray(
         apiSection.contents[i],
         apiSection.contents[i-1],
-        apiSection.contents[i+1])
+        apiSection.contents[i+1],
+        pushHeading)
       if(newLines.constructor!==Array) { throw 'I should have had an array !' }
       lines = lines.concat(newLines)
     }
@@ -192,7 +194,7 @@ function httpApiDocumentationCompiler(lines, conf){
     return lines
   }
 
-  var printApiSectionContentAsArray = function(content, previousContent, nextContent) {
+  var printApiSectionContentAsArray = function(content, previousContent, nextContent, pushHeading) {
     var previousContentType = previousContent && previousContent.type
     var nextContentType = nextContent && nextContent.type
 
@@ -208,6 +210,9 @@ function httpApiDocumentationCompiler(lines, conf){
         lines.push('<table class="hadooc params">')
         break;
       case 'string':
+        // Nothing
+        break;
+      case 'heading':
         // Nothing
         break;
       case 'api':
@@ -256,14 +261,19 @@ function httpApiDocumentationCompiler(lines, conf){
       break;
     case 'string':
       if(content.data.trim()!='') {
-        lines.push('<p>'+marked(content.data)+'</p>')
+        // lines.push('<p>'+marked(content.data)+'</p>')
+        lines.push(marked(content.data))
       }
+      break;
+    case 'heading':
+      lines.push(marked("#" + content.data.trim()))
+      pushHeading(content)
       break;
     case 'sourceCode':
       lines.push('<pre class="code">'+htmlEscape(content.sourceCode)+'</pre>')
       break;
     case 'enum':
-      lines.push('<tr><td><span class="value">'+content.value+'</span></td><td>'+marked(content.desc)+'</td></tr>')
+      lines.push('<tr><td><span class="value ' + content.xtype + '">'+content.value+'</span></td><td>'+marked(content.desc)+'</td></tr>')
       break;
     default:
       throw('Unknown content type: ' + content.type)
@@ -281,6 +291,9 @@ function httpApiDocumentationCompiler(lines, conf){
       case 'string':
         // Nothing
         break
+      case 'heading':
+        // Nothing
+        break
       case 'api':
         // Nothing
         break;
@@ -295,6 +308,34 @@ function httpApiDocumentationCompiler(lines, conf){
       }
     }
 
+    return lines
+  }
+
+  var headingsTreeRoot = { parent: null, children: [], level:0, heading: null }
+  var pushHeading = function(heading) {
+    // heading = { type: 'heading', level: nbSharp, data: l }
+    var lastNode = pushHeading.lastNode
+    var parent = lastNode
+    while(parent.level > heading.level-1) { parent = parent.parent }
+    var newNode = { parent: parent, children: [], level:heading.level, heading: heading }
+    parent.children.push(newNode)
+    pushHeading.lastNode = newNode
+  }
+  var printHeadingNode = function(node) {
+    if(node.heading) {
+      return "<!-- level " + node.level + " / " + node.heading.data + " -->"
+    } else {
+      return "<!-- Table of contents -->"
+    }
+  }
+  pushHeading.lastNode = headingsTreeRoot
+  var printHeadingTree = function(node) {
+    if(node == null) { node = headingsTreeRoot }
+    var lines = [ printHeadingNode(node) ]
+    for(var i=0; i<node.children.length; i++) {
+      var child = node.children[i]
+      lines = lines.concat(printHeadingTree(child))
+    }
     return lines
   }
 
@@ -319,7 +360,8 @@ function httpApiDocumentationCompiler(lines, conf){
       outputLines = outputLines.concat(printApiSectionAsArray(
         apiSections[i],
         apiSections[i-1],
-        apiSections[i+1]))
+        apiSections[i+1],
+        pushHeading))
     }
     apiSections = undefined
   }
@@ -400,9 +442,9 @@ function httpApiDocumentationCompiler(lines, conf){
       i--
     } else if(startsWith(l,'#') && !isInsideApiSection) {
       var nbSharp=0
-      for(nbSharp=0; l[nbSharp]=='#'; nbSharp++) {}
-      theLine = '<h'+(nbSharp+1)+'>'+l.slice(nbSharp)+'</h'+(nbSharp+1)+'>'
-      pushApiSectionContent({ type: 'string', data: theLine })
+      for(nbSharp=0; l[nbSharp]=='#'; nbSharp++);
+      // theLine = '<h'+(nbSharp+1)+'>'+l.slice(nbSharp)+'</h'+(nbSharp+1)+'>'
+      pushApiSectionContent({ type: 'heading', level: nbSharp, data: l })
     } else if(prefix.isSourceCode(l)) {
       var pDataArray = []
       for(i=i+1; i<lines.length ;i++){
@@ -447,6 +489,8 @@ function httpApiDocumentationCompiler(lines, conf){
   }
 
   flushApiSections()
+
+  outputLines = outputLines.concat(printHeadingTree())
 
   if(!outputLines || outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
 
