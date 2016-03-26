@@ -121,7 +121,11 @@ Example:
 
 An item of a list of value with explanation can be constructed with
 
-    {-:value} explanation
+    {-:code value} explanation
+
+of
+
+    {=:bold value} explanation
 
 The explanation may contain any standard markdown (no hadooc extension).
 A list of enumeration ends with am empty line.
