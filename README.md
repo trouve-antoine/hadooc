@@ -197,6 +197,18 @@ or
 Where XXX is a comment tag used as prefix of the comment, and as CSS class name of the enclosing p element when comment display is turned on.
 By default comments are not included in the output. They can however be forced in with option "-m" of the CLI.
 
+#### Flowcharts (experimental)
+
+It is possible to include flowcharts with the syntax:
+
+    {code:flowchart}
+    chart source
+    {/code}
+
+The flowcharts are provided by [flowchart.js](http://flowchart.js.org).
+The parser is very picky (e.g. spaces at the begining of lines): please first test your charts' source code on the website **before**, then copy/paste in your hadooc file.
+The flowcharts are generated in JavaScript at the client side.
+
 ## License (MIT)
 
 Copyright (c) 2016 by Antoine Trouvé.
