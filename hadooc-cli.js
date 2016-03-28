@@ -48,6 +48,7 @@ program
   .option('-t, --theme <themename>', 'The name of a preset CSS to embed into the output HTML file. Themes are overriden by option -b. Default to "default"')
   .option('-l, --list-themes', 'Prints the list of available themes and exits', listThemesAndExit)
   .option('-g, --language <locale>', 'Sets the locale for generated HTML')
+  .option('-m, --show−comments', 'Show comments in HTML')
   .option('-v, --verbose', 'Prints a bunch of debug information')
   .action(function(file) {
     var conf = {
@@ -56,8 +57,8 @@ program
       embeddedCssPath: program['embedded-css'],
       externalCssUrl: program['external-css'],
       locale: program.language || "en",
-      debug: program.verbose
-
+      debug: program.verbose,
+      shouldDisplayComments: program['show−comments']
     }
 
     if( !conf.embeddedCssPath ) {

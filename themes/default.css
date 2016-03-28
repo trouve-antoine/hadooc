@@ -85,3 +85,11 @@ table.enum > tbody > tr > td { padding: 0.5em; border-bottom: 1px solid lightgre
 table.enum > tbody > tr:last-child > td { border-bottom: 0px }
 table.enum > tbody > tr > td:first-child > span.bold { font-family: sans-serif; font-weight: bold; font-size:normal; }
 table.enum > tbody > tr > td:first-child > span.verb { font-family: monospace; font-size:large; }
+
+p.comment { padding: 0.5em 1em 0.5em 1em; color: lightgrey; font-family: sans-serif; width: 100%; background-color: #f9f9f9 }
+p.comment:hover { color: darkgrey }
+p.comment:before { content: "¶ "; font-size: small; color: #f9f9f9 }
+p.comment:hover:before { color: darkgrey }
+p.comment > span.comment-code { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
+p.comment > span.comment-code:before { content: "{" }
+p.comment > span.comment-code:after { content: "}" }

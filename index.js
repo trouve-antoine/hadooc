@@ -11,7 +11,8 @@ function httpApiDocumentationCompiler(lines, conf){
 
   if(!conf) {
     conf = {
-      separator: "    "
+      separator: "    ",
+      shouldDisplayComment: false
     }
   }
 
@@ -67,6 +68,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
   prefix.isSourceCode = function(l){ return startsWith(l, "{code:") }
+  prefix.isSingleLineComment = function(l) { return /----\s*({([\w]+)}\s+)?(.*)/g.exec(l) }
 
   var field = {};
   field.apiSectionName = function(l){ return contentAfter(l, "** ") }
@@ -124,19 +126,20 @@ function httpApiDocumentationCompiler(lines, conf){
         desc: desc
       }
     } else {
-      throw 'Bad http code in: ' + l + ' (expected to start with {http:<code>} or {http:<code>:<xcode>})'
+      throw 'Bad http code in: ' + l + ' (expected to start with "{http:<code>}" or "{http:<code>:<xcode>}")'
     }
   }
   field.enum = function(l) {
-    var cbraceAt = l.indexOf('} ')
-    var ss = l.slice(1,cbraceAt).split(':')
-    if(ss.length!==2) { throw 'Bad value code in: ' + l + ' (expected: {-:xxx} hoge)' }
-    var value = ss[1]
+    // var cbraceAt = l.indexOf('} ')
+    // var ss = l.slice(1,cbraceAt).split(':')
+    var ss = /{(.):(.+)}/g.exec(l)
+    if(!ss) { throw 'Bad value code in: ' + l + ' (expected: "{-:xxx} hoge" or "{-:xxx}")' }
+
     return {
       type: 'enum',
-      value: value,
-      desc: l.slice(cbraceAt+1),
-      xtype: ss[0] == "-" ? "verb" : "bold",
+      value: ss[2],
+      desc: l.slice(ss[0].length),
+      xtype: ss[1] == "-" ? "verb" : "bold",
     }
   }
 
@@ -215,6 +218,9 @@ function httpApiDocumentationCompiler(lines, conf){
       case 'heading':
         // Nothing
         break;
+      case 'comment':
+        // Nothing
+        break;
       case 'api':
         // Nothing
         break;
@@ -269,6 +275,15 @@ function httpApiDocumentationCompiler(lines, conf){
       lines.push(marked("#" + content.data.trim()))
       pushHeading(content)
       break;
+    case 'comment':
+      if(conf.shouldDisplayComments) {
+        if(content.xtype) {
+          lines.push('<p class="comment"><span class="comment-code">' + content.xtype + "</span> " + content.body + '</p>')
+        } else {
+          lines.push('<p class="comment">' + content.body + '</p>')
+        }
+      }
+      break;
     case 'sourceCode':
       lines.push('<pre class="code">'+htmlEscape(content.sourceCode)+'</pre>')
       break;
@@ -292,6 +307,9 @@ function httpApiDocumentationCompiler(lines, conf){
         // Nothing
         break
       case 'heading':
+        // Nothing
+        break
+      case 'comment':
         // Nothing
         break
       case 'api':
@@ -396,6 +414,7 @@ function httpApiDocumentationCompiler(lines, conf){
     }
 
     var isInsideApiSection = (currentApiSection.name !== undefined)
+    var lm; // used for matching isXXX functions
 
     if(prefix.isApi(l)) {
       pushApiSectionContent(field.api(l))
@@ -456,6 +475,10 @@ function httpApiDocumentationCompiler(lines, conf){
         }
       }
       pushApiSectionContent(field.sourceCode(pDataArray.join('\n')))
+    } else if(lm = prefix.isSingleLineComment(l)) {
+      var commentCode = lm[2]
+      var commentBody = lm[3]
+      pushApiSectionContent({ type: 'comment', xtype: commentCode, data: commentBody })
     } else {
       pushApiSectionContent({ type: 'string', data: lines[i] })
     }
