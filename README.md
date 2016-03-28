@@ -166,7 +166,7 @@ Example:
 
 #### Source code (JSON Only)
 
-Additionaly to marked's ''''X (four single quotes) syntax, the hadooc compiler has its own construct for code blocks:
+Additionally to marked's ''''X (four single quotes) syntax, the hadooc compiler has its own construct for code blocks:
 
     {code:X}
     Your code
@@ -183,6 +183,18 @@ Example:
       "dataNb": 1
     }
     {/code}
+
+#### Comments
+
+It is possible to add single-line comments with the syntax:
+
+    ---- This is a comment
+
+or
+
+    ---- {XXX} This is a comment of with tag "XXX"
+
+Where XXX is a comment tag used as prefix of the comment, and styling when comment display is turned on.
 
 ## License (MIT)
 

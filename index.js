@@ -277,8 +277,8 @@ function httpApiDocumentationCompiler(lines, conf){
       break;
     case 'comment':
       if(conf.shouldDisplayComments) {
-        if(content.xtype) {
-          lines.push('<p class="comment ' + content.xtype.toLowerCase() + '"><span class="comment-code">' + content.xtype + "</span> " + content.body + '</p>')
+        if(content.tag) {
+          lines.push('<p class="comment ' + content.tag.toLowerCase() + '"><span class="comment-tag">' + content.tag + "</span> " + content.body + '</p>')
         } else {
           lines.push('<p class="comment">' + content.body + '</p>')
         }
@@ -476,9 +476,9 @@ function httpApiDocumentationCompiler(lines, conf){
       }
       pushApiSectionContent(field.sourceCode(pDataArray.join('\n')))
     } else if(lm = prefix.isSingleLineComment(l)) {
-      var commentCode = lm[2]
+      var commentTag = lm[2]
       var commentBody = lm[3]
-      pushApiSectionContent({ type: 'comment', xtype: commentCode, data: commentBody })
+      pushApiSectionContent({ type: 'comment', tag: commentTag, data: commentBody })
     } else {
       pushApiSectionContent({ type: 'string', data: lines[i] })
     }

@@ -90,8 +90,8 @@ p.comment { padding: 0.5em 1em 0.5em 1em; color: lightgrey; font-family: sans-se
 p.comment:hover { color: darkgrey }
 p.comment:before { content: "¶ "; font-size: small; color: #f9f9f9 }
 p.comment:hover:before { color: darkgrey }
-p.comment > span.comment-code { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
-p.comment > span.comment-code:before { content: "{" }
-p.comment > span.comment-code:after { content: "}" }
-p.comment.info > span.comment-code { color: teal }
-p.comment.todo > span.comment-code { color: tomato }
+p.comment > span.comment-tag { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
+p.comment > span.comment-tag:before { content: "{" }
+p.comment > span.comment-tag:after { content: "}" }
+p.comment.info > span.comment-tag { color: teal }
+p.comment.todo > span.comment-tag { color: tomato }
