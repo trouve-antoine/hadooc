@@ -195,6 +195,7 @@ or
     ---- {XXX} This is a comment of with tag "XXX"
 
 Where XXX is a comment tag used as prefix of the comment, and styling when comment display is turned on.
+By default comments are not included in the output. They can however be forced in with option "-m" of the CLI.
 
 ## License (MIT)
 
