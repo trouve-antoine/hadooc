@@ -93,3 +93,5 @@ p.comment:hover:before { color: darkgrey }
 p.comment > span.comment-code { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
 p.comment > span.comment-code:before { content: "{" }
 p.comment > span.comment-code:after { content: "}" }
+p.comment.info > span.comment-code { color: teal }
+p.comment.todo > span.comment-code { color: tomato }
