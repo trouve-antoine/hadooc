@@ -1,0 +1,55 @@
+---
+title: Fisdom HTTP API v.1
+sub-title: 仕様書v.0.3m/2016-02-18
+---
+
+# API 1.x User management API
+
+## API 1.1 Login
+
+** URL
+
+{api} POST    /users/login
+
+** Post request parameters
+
+{!} username    @string    The user name
+{!} password    @string    The password.
+
+** JSON response parameters
+
+{!$} userid     @string    The userid, only if authentication succeeded. May be
+- the email
+- the display name
+{?$} role       @role    One of the value below.
+
+** User Roles
+
+{-:root} the king
+- can read everything
+- can write everywhere
+{-:nobody} a peasant
+{-:other} be careful
+
+** HTTP Response Status Codes
+
+{http:200} Success
+{http:403} The user is logged in, but does not have enough permission
+{http:500} Unable to access the data:
+- the database is off
+- the FBI was listening to the communication
+{http:503} The janitor has tripped on the server's plug, again.
+
+**
+
+It is OK to have some free markdown after an API section. You can use:
+- all marked extensions
+- even hadooc extensions
+
+For example, this is an enumeration:
+{-:verb} value
+{=:bold} value
+
+---- {todo} Some comment that won't appear in the HTML unless you explicitly asked for it.
+
+## API 1.2 Logout
