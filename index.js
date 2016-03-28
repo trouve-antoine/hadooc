@@ -278,7 +278,7 @@ function httpApiDocumentationCompiler(lines, conf){
     case 'comment':
       if(conf.shouldDisplayComments) {
         if(content.tag) {
-          lines.push('<p class="comment ' + content.tag.toLowerCase() + '"><span class="comment-tag">' + content.tag + "</span> " + content.body + '</p>')
+          lines.push('<p class="comment ' + content.tag.toLowerCase() + '"><span class="comment-tag">' + content.tag + "</span> " + content.data + '</p>')
         } else {
           lines.push('<p class="comment">' + content.body + '</p>')
         }
