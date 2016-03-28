@@ -17,6 +17,7 @@ function httpApiDocumentationCompiler(lines, conf){
   }
 
   var outputLines = []
+  var nbOfFlowcharts = 0
 
   var debug = function(s){};
   if(conf.debug) {
@@ -67,7 +68,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isEnum = function(l) { return startsWith(l, "{-:") || startsWith(l, "{=:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
-  prefix.isSourceCode = function(l){ return startsWith(l, "{code:") }
+  prefix.isSourceCode = function(l){ return /^\s*{code:(.*)}\s*$/g.exec(l) }
   prefix.isSingleLineComment = function(l) { return /----\s*({([\w]+)}\s+)?(.*)/g.exec(l) }
 
   var field = {};
@@ -143,10 +144,11 @@ function httpApiDocumentationCompiler(lines, conf){
     }
   }
 
-  field.sourceCode = function(data) {
+  field.sourceCode = function(language, data) {
     return {
       type: 'sourceCode',
-      sourceCode: data
+      language: language,
+      data: data
     }
   }
 
@@ -285,7 +287,20 @@ function httpApiDocumentationCompiler(lines, conf){
       }
       break;
     case 'sourceCode':
-      lines.push('<pre class="code">'+htmlEscape(content.sourceCode)+'</pre>')
+      switch(content.language){
+      case "json":
+      case "javascript":
+        lines.push('<pre class="code">'+htmlEscape(content.data)+'</pre>')
+        break
+      case "flowchart":
+        nbOfFlowcharts++
+        lines.push('<textarea class="source-code flowchart" style="display:none">\n' + content.data + '\n</textarea>')
+        lines.push('<div class="code flowchart" id="flowchart' + nbOfFlowcharts + '"></div>')
+        break
+      default:
+        throw('Unknown language: ' + content.language)
+      }
+
       break;
     case 'enum':
       lines.push('<tr><td><span class="value ' + content.xtype + '">'+content.value+'</span></td><td>'+marked(content.desc)+'</td></tr>')
@@ -464,7 +479,8 @@ function httpApiDocumentationCompiler(lines, conf){
       for(nbSharp=0; l[nbSharp]=='#'; nbSharp++);
       // theLine = '<h'+(nbSharp+1)+'>'+l.slice(nbSharp)+'</h'+(nbSharp+1)+'>'
       pushApiSectionContent({ type: 'heading', level: nbSharp, data: l })
-    } else if(prefix.isSourceCode(l)) {
+    } else if(lm = prefix.isSourceCode(l)) {
+      var language = lm[1]
       var pDataArray = []
       for(i=i+1; i<lines.length ;i++){
         var ll = lines[i].trim()
@@ -474,7 +490,7 @@ function httpApiDocumentationCompiler(lines, conf){
           pDataArray.push(sourceCodeLine)
         }
       }
-      pushApiSectionContent(field.sourceCode(pDataArray.join('\n')))
+      pushApiSectionContent(field.sourceCode(language, pDataArray.join('\n')))
     } else if(lm = prefix.isSingleLineComment(l)) {
       var commentTag = lm[2]
       var commentBody = lm[3]
@@ -517,7 +533,7 @@ function httpApiDocumentationCompiler(lines, conf){
 
   if(!outputLines || outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
 
-  return { metadata: metadata,  outputLines: outputLines }
+  return { metadata: metadata,  outputLines: outputLines, context: { nbOfFlowcharts: nbOfFlowcharts } }
 }
 
 function processStdin(hadoocConf, callback){
@@ -536,7 +552,7 @@ function processStdin(hadoocConf, callback){
   process.stdin.on('end', function() {
     var dataLines = dataFromStdin.split("\n")
     var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
-    wrapHtmlBody(compiled.metadata, compiled.outputLines, hadoocConf, callback)
+    wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
   });
 }
 
@@ -548,11 +564,11 @@ function processFile(inputFilePath, hadoocConf, callback) {
     if(err) { throw err.message }
     var dataLines = data.split("\n")
     var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
-    wrapHtmlBody(compiled.metadata, compiled.outputLines, hadoocConf, callback)
+    wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
   })
 }
 
-function wrapHtmlBody(metadata, bodyLines, hadoocConf, callback) {
+function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
   var embeddedCssPath = hadoocConf.embeddedCssPath
   var externalCssUrl = hadoocConf.externalCssUrl
 
@@ -560,6 +576,9 @@ function wrapHtmlBody(metadata, bodyLines, hadoocConf, callback) {
   var subTitle = metadata.subtitle || metadata['sub-title']
   var date = metadata.date
   var version = metadata.version
+  var nbOfFlowcharts = context.nbOfFlowcharts
+
+  var scriptLines = []
 
   var htmlPrefixLines = [
     '<!doctype html>',
@@ -568,6 +587,15 @@ function wrapHtmlBody(metadata, bodyLines, hadoocConf, callback) {
     '  <meta charset="utf-8">',
     '  <title>' + title + '</title>'
   ]
+
+  if(nbOfFlowcharts > 0) {
+    htmlPrefixLines = htmlPrefixLines.concat([
+      '<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>',
+      '<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>',
+      '<script src="http://flowchart.js.org/flowchart-latest.js"></script>'
+    ])
+    scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
+  }
 
   if(externalCssUrl) {
     htmlPrefixLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
@@ -590,9 +618,21 @@ function wrapHtmlBody(metadata, bodyLines, hadoocConf, callback) {
     '<body>',
     '<h1>' + titleStr + '</h1>'
   ].concat(
-    bodyLines,
-    [ '</body>', '</html>']
+    bodyLines
   )
+
+  if(scriptLines.length != 0) {
+    linesAfterCss.push('<script>')
+    linesAfterCss.push('$( function(){')
+    linesAfterCss = linesAfterCss.concat(scriptLines)
+    linesAfterCss.push('})')
+    linesAfterCss.push('</script>')
+  }
+
+  linesAfterCss = linesAfterCss.concat([
+    '</body>',
+    '</html>'
+  ])
 
   if(embeddedCssPath) {
     htmlPrefixLines.push('<style>')

@@ -1,6 +1,7 @@
 ---
-title: Fisdom HTTP API v.1
-sub-title: 仕様書v.0.3m/2016-02-18
+title: Sample of Hadooc
+sub-title: Example of sub-title
+date: 2016/11/30
 ---
 
 # API 1.x User management API
@@ -53,3 +54,34 @@ For example, this is an enumeration:
 ---- {todo} Some comment that won't appear in the HTML unless you explicitly asked for it.
 
 ## API 1.2 Logout
+
+````json
+{
+  "name": "Chuck Noris",
+  "power": 850
+}
+````
+
+{code:json}
+{
+  "name": "Sangoku",
+  "power": 350
+}
+{/code}
+
+{code:flowchart}
+st=>start: Start|past:>http://www.google.com[blank]
+e=>end: End|future:>http://www.google.com
+op1=>operation: My Operation|past
+op2=>operation: Stuff|current
+sub1=>subroutine: My Subroutine|invalid
+cond=>condition: Yes
+or No?|approved:>http://www.google.com
+c2=>condition: Good idea|rejected
+io=>inputoutput: catch something...|future
+st->op1(right)->cond
+cond(yes, right)->c2
+cond(no)->sub1(left)->op1
+c2(yes)->io->e
+c2(no)->op2->e
+{/code}
