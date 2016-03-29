@@ -5,6 +5,7 @@
 // }
 //
 
+var debug = function(s){};
 
 function httpApiDocumentationCompiler(lines, conf){
   if(lines.constructor!=Array) { throw 'Please specify an array of lines in input.' }
@@ -12,21 +13,45 @@ function httpApiDocumentationCompiler(lines, conf){
   if(!conf) {
     conf = {
       separator: "    ",
-      shouldDisplayComment: false
+      shouldDisplayComment: false,
+      shouldHighlightCode: false
     }
   }
 
   var outputLines = []
-  var nbOfFlowcharts = 0
+  var context = {
+    nbOfFlowcharts: 0,
+    nbOfHighlightedCodes: 0
+  }
 
-  var debug = function(s){};
   if(conf.debug) {
     debug = function(s) { console.log(s) }
   }
 
+  debug("Configuration is: ")
+  debug(conf)
+
   // Gets marked from node.js or the browser
-  var marked = marked || require('marked');
-  if(!marked) { throw 'Unable to load marked.' }
+  var markdown = function(l) {
+    return markdown.marked(l, { renderer : markdown.renderer} )
+  }
+  markdown.marked = require('marked');
+  if(!markdown.marked) { throw 'Unable to load marked.' }
+  markdown.renderer = new markdown.marked.Renderer()
+  markdown.renderer.code = function(data, language) {
+    if(language) {
+      if(conf.shouldHighlightCode) {
+        // data = require('highlight.js').highlightAuto(data).value;
+        data = require('highlight.js').highlight(language, data).value;
+        context.nbOfHighlightedCodes ++;
+      } else {
+        data = htmlEscape(data)
+      }
+      return '<pre class="hljs code lang-' + language + '">'+data+'</pre>'
+    } else {
+      return '<code>' + data + '</code>'
+    }
+  }
 
   var localize = new require('localize')({
     "optional": {
@@ -257,7 +282,7 @@ function httpApiDocumentationCompiler(lines, conf){
       if(content.xCode !== undefined) {
         small = "<small>" + translate("extended code") + ":"+content.xCode+"</small><br>"
       }
-      lines.push('<tr><td><span class="http-status-code '+variantClassName+'">'+content.code+'</span></td><td>'+small+marked(content.desc)+'</td></tr>')
+      lines.push('<tr><td><span class="http-status-code '+variantClassName+'">'+content.code+'</span></td><td>'+small+markdown(content.desc)+'</td></tr>')
       break;
     case 'param':
       var smallTexts = []
@@ -265,16 +290,16 @@ function httpApiDocumentationCompiler(lines, conf){
       if(content.isProtected) { smallTexts.push(translate("protected")) }
       if(content.isOptional ) { smallTexts.push(translate("optional")) }
       smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
-      lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+marked(content.paramType)+'</td><td>'+marked(content.desc)+'</td></tr>')
+      lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+markdown(content.paramType)+'</td><td>'+markdown(content.desc)+'</td></tr>')
       break;
     case 'string':
       if(content.data.trim()!='') {
-        // lines.push('<p>'+marked(content.data)+'</p>')
-        lines.push(marked(content.data))
+        // lines.push('<p>'+markdown(content.data)+'</p>')
+        lines.push(markdown(content.data))
       }
       break;
     case 'heading':
-      lines.push(marked("#" + content.data.trim()))
+      lines.push(markdown("#" + content.data.trim()))
       pushHeading(content)
       break;
     case 'comment':
@@ -288,22 +313,19 @@ function httpApiDocumentationCompiler(lines, conf){
       break;
     case 'sourceCode':
       switch(content.language){
-      case "json":
-      case "javascript":
-        lines.push('<pre class="code">'+htmlEscape(content.data)+'</pre>')
-        break
       case "flowchart":
-        nbOfFlowcharts++
+        context.nbOfFlowcharts++
         lines.push('<textarea class="source-code flowchart" style="display:none">\n' + content.data + '\n</textarea>')
-        lines.push('<div class="code flowchart" id="flowchart' + nbOfFlowcharts + '"></div>')
+        lines.push('<div class="code flowchart" id="flowchart' + context.nbOfFlowcharts + '"></div>')
         break
       default:
-        throw('Unknown language: ' + content.language)
+        debug('Unknown language in {code} element: ' + content.language + '. Use a markdown ```` element instead.')
+        lines.push(markdown("````" + content.language + "\n" + content.data + "\n````"))
       }
 
       break;
     case 'enum':
-      lines.push('<tr><td><span class="value ' + content.xtype + '">'+content.value+'</span></td><td>'+marked(content.desc)+'</td></tr>')
+      lines.push('<tr><td><span class="value ' + content.xtype + '">'+content.value+'</span></td><td>'+markdown(content.desc)+'</td></tr>')
       break;
     default:
       throw('Unknown content type: ' + content.type)
@@ -382,7 +404,7 @@ function httpApiDocumentationCompiler(lines, conf){
   }
   var flushOtherLines = function() {
     if(otherLines) {
-      outputLines.push(marked(otherLines.join("\n")))
+      outputLines.push(markdown(otherLines.join("\n")))
       otherLines = undefined
     }
   }
@@ -436,7 +458,7 @@ function httpApiDocumentationCompiler(lines, conf){
     } else if(prefix.isHttpCode(l)) {
       var pData = l
       for(var j=i+1; j<lines.length ;j++){
-        var jl = lines[j].trim()
+        var jl = lines[j]
         if(jl=="") { break }
         else if(jl[0]==='{') { break } // }
         else if(jl[0]==='#') { break }
@@ -447,7 +469,7 @@ function httpApiDocumentationCompiler(lines, conf){
     } else if(prefix.isEnum(l)) {
       var pData = l
       for(var j=i+1; j<lines.length ;j++){
-        var jl = lines[j].trim()
+        var jl = lines[j]
         if(jl=="") { break }
         else if(jl[0]==='{') { break } // }
         else if(jl[0]==='#') { break }
@@ -459,7 +481,7 @@ function httpApiDocumentationCompiler(lines, conf){
       var pData = l
       var wasList = false
       for(var j=i+1; j<lines.length ;j++){
-        var jl = lines[j].trim()
+        var jl = lines[j]
         if(jl=="") { break }
         else if(jl[0]=='{') { break } // }
         else if(jl[0]=='#') { break }
@@ -483,7 +505,7 @@ function httpApiDocumentationCompiler(lines, conf){
       var language = lm[1]
       var pDataArray = []
       for(i=i+1; i<lines.length ;i++){
-        var ll = lines[i].trim()
+        var ll = lines[i]
         if(ll==="{/code}") { break }
         else {
           var sourceCodeLine = lines[i]
@@ -521,7 +543,7 @@ function httpApiDocumentationCompiler(lines, conf){
       currentApiSection = { name: field.apiSectionName(l), contents: [] }
       debug("New section: " + currentApiSection)
     } else {
-      debug("Line " + i + ": " + l)
+      // debug("Line " + i + ": " + l)
       i = processHadoocLine(l, i)
     }
     //console.log(currentApiSection)
@@ -533,7 +555,7 @@ function httpApiDocumentationCompiler(lines, conf){
 
   if(!outputLines || outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
 
-  return { metadata: metadata,  outputLines: outputLines, context: { nbOfFlowcharts: nbOfFlowcharts } }
+  return { metadata: metadata,  outputLines: outputLines, context: context }
 }
 
 function processStdin(hadoocConf, callback){
@@ -569,6 +591,8 @@ function processFile(inputFilePath, hadoocConf, callback) {
 }
 
 function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
+  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+
   var embeddedCssPath = hadoocConf.embeddedCssPath
   var externalCssUrl = hadoocConf.externalCssUrl
 
@@ -576,11 +600,16 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
   var subTitle = metadata.subtitle || metadata['sub-title']
   var date = metadata.date
   var version = metadata.version
-  var nbOfFlowcharts = context.nbOfFlowcharts
 
   var scriptLines = []
 
-  var htmlPrefixLines = [
+  var getFileContents = function(path) {
+    var lines = require('fs').readFileSync(path, charset).split("\n")
+    debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
+    return lines
+  }
+
+  var htmlLines = [
     '<!doctype html>',
     '<html>',
     '<head>',
@@ -588,8 +617,8 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
     '  <title>' + title + '</title>'
   ]
 
-  if(nbOfFlowcharts > 0) {
-    htmlPrefixLines = htmlPrefixLines.concat([
+  if(context.nbOfFlowcharts > 0) {
+    htmlLines = htmlLines.concat([
       '<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>',
       '<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>',
       '<script src="http://flowchart.js.org/flowchart-latest.js"></script>'
@@ -597,9 +626,32 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
     scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
   }
 
-  if(externalCssUrl) {
-    htmlPrefixLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
+  var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
+
+  if(hasAStyleSection) {
+    htmlLines.push('<style>')
   }
+
+  if(embeddedCssPath) {
+    htmlLines.push("/******** Embedded CSS */")
+    htmlLines = htmlLines.concat(getFileContents(embeddedCssPath))
+  }
+
+  if(context.nbOfHighlightedCodes > 0) {
+    htmlLines.push("/******** CSS for code highlight */")
+    htmlLines = htmlLines.concat(getFileContents(hadoocConf.highlightCssPath))
+  }
+
+  if(hasAStyleSection) {
+    htmlLines.push('</style>')
+  }
+
+  if(externalCssUrl) {
+    htmlLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
+  }
+
+  htmlLines.push("</head>")
+  htmlLines.push("<body>")
 
   var titleStr = title
 
@@ -613,40 +665,23 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
     titleStr += '<br><small class="date">' + date + '</small>'
   }
 
-  var linesAfterCss = [
-    '</head>',
-    '<body>',
-    '<h1>' + titleStr + '</h1>'
-  ].concat(
-    bodyLines
-  )
+  htmlLines.push('<h1>' + titleStr + '</h1>')
+
+  htmlLines = htmlLines.concat(bodyLines)
+
 
   if(scriptLines.length != 0) {
-    linesAfterCss.push('<script>')
-    linesAfterCss.push('$( function(){')
-    linesAfterCss = linesAfterCss.concat(scriptLines)
-    linesAfterCss.push('})')
-    linesAfterCss.push('</script>')
+    htmlLines.push('<script>')
+    htmlLines.push('$( function(){')
+    htmlLines = htmlLines.concat(scriptLines)
+    htmlLines.push('})')
+    htmlLines.push('</script>')
   }
 
-  linesAfterCss = linesAfterCss.concat([
-    '</body>',
-    '</html>'
-  ])
+  htmlLines.push("</body>")
+  htmlLines.push("</html>")
 
-  if(embeddedCssPath) {
-    htmlPrefixLines.push('<style>')
-    require('fs').readFile(embeddedCssPath, charset, function(err, data){
-      if(err) { throw err.message }
-      htmlPrefixLines.push(data)
-      htmlPrefixLines.push('</style>')
-      htmlPrefixLines = htmlPrefixLines.concat(linesAfterCss)
-      callback.call(null, htmlPrefixLines)
-    })
-  } else {
-    htmlPrefixLines = htmlPrefixLines.concat(linesAfterCss)
-    callback.call(null, htmlPrefixLines)
-  }
+  callback.call(null, htmlLines)
 }
 
 module.exports = {

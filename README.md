@@ -8,6 +8,23 @@ To get help execute it with parameter "--help" as below:
 
     ./hadooc-cli.js --help
 
+    Usage: hadooc [options] <file>
+
+    Options:
+
+      -h, --help                     output usage information
+      -o, --output <filename>        Output file. Use the standard output by default
+      -b, --embedded-css <filename>  The path to a css file that will be embedded into the output HTML file
+      -x, --external-css <url>       The URL of a CSS file linked into the output HTML file
+      -c, --charset <charset>        The name of the charset used to read the input file. Default to utf8
+      -s, --separator <string>       The separator to distinguish between fields. Default to "    " (4 spaces)
+      -t, --theme <themename>        The name of a preset CSS to embed into the output HTML file. Themes are overriden by option -b. Default to "default"
+      -l, --list-themes              Prints the list of available themes for both hadooc and the code highlight
+      -g, --language <locale>        Sets the locale for generated HTML
+      -m, --show−comments            Show comments in HTML
+      -v, --verbose                  Prints a bunch of debug information
+      -h, --highlight-code [theme]   Highlight code blocks with language. You may specify a theme name (default: sunburst).
+
 If you have installed hadooc via npm, the CLI should be available in the path:
 
     hadooc --help
@@ -164,25 +181,36 @@ Example:
 
     **
 
-#### Source code (JSON Only)
+#### Source code
 
-Additionally to marked's ''''X (four single quotes) syntax, the hadooc compiler has its own construct for code blocks:
-
-    {code:X}
-    Your code
-    {/code}
-
-Where X is the language (only json is supported for now).
-This construct may disapear in favor of four single quotes.
-
+If you only want to display some code, use marked syntax (four backquotes).
 Example:
 
-    {code:json}
+    ````javascript
     {
       "data": [ { "data1": "value1" } ],
       "dataNb": 1
     }
+    ````
+
+The code can be highlighted. To this end, the hadooc compiler internally uses [highlight.js](https://highlightjs.org).
+The CLI tool makes it possible to set the highlighting theme with option `-h [theme]`.
+
+#### Charts
+
+Additionally, the hadooc compiler supports generation of graphic contents from text script from the element
+
+    {code:X}
+    some script
     {/code}
+
+Where X is the name of a code module. The supported modules are
+
+- flowchart: generation of flowcharts based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental.
+
+More are to come !
+
+If an unknown value for X is given, the content between the `{code}` elements is printed as source code (this reproduces the behavior of previous versions of the hadooc compiler).
 
 #### Comments
 

@@ -43,17 +43,17 @@ table.api > tbody > tr > td:nth-child(2) {
 }
 pre.code {
   border-radius: 5pt;
-  /*background-color: #dfdfdf;*/
-  background-color: #002039;
-  color: white;
+
   font-family: monospace;
   padding: 1em;
-  min-width: 500px
-}
-pre.code {
+  min-width: 500px;
   max-width: 680px;
   white-space: pre-wrap;
+
+  background-color: #002039;
+  color: white;
 }
+
 table.api p {
   margin: 0;
 }
