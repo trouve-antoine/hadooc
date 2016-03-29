@@ -1,6 +1,8 @@
 # hadooc
 Markdown with domain specific extensions to easily generate documentation for HTTP API. Contains the language specification as well as the compiler to HTML. Written in Javascript for Node.js.
 
+For now it only works at server side, but it should be easy to make it work at client side too.
+
 ## Command Line Interface
 
 The file hadooc-cli.js contains a command line interface (CLI) for hadooc compiler.
@@ -29,7 +31,7 @@ If you have installed hadooc via npm, the CLI should be available in the path:
 
     hadooc --help
 
-If not, try to execute npm link manually.
+If not, try to execute `npm link` manually.
 
 ## Markdown extensions
 
@@ -39,10 +41,12 @@ The only difference is that the hadooc compiler will add a level to all titles w
 
 ### Metadata
 
-The file may start by metadata, enclosed between lines that only contain --- (three dashes)
+The file may start by metadata, enclosed between lines that only contain `---` (three dashes)
 Metadata are of the format
+
     key: value
-Where the key is not case sensitive. The hadooc compiler accepts the following key
+
+Where the key is not case sensitive. The hadooc compiler accepts the following keys
 - title
 - subtitle or sub-title
 - version
@@ -59,7 +63,7 @@ Example
 ### Sections of API description array
 
 API parameters are gathered within two-column arrays which are separated into sections.
-Each section starts with ** (two stars) followed by the name of the section.
+Each section starts with `**` (two stars) followed by the name of the section.
 A section may end in three ways:
 - the start of a new section (a line that starts with two stars)
 - a new markdown header (a line that starts with a hash tag)
@@ -84,9 +88,10 @@ Example
 
 Within an API section, you can specify the prototype of your API with the command below:
 
-    {api} VERB URL
+    {api} VERB    URL
 
-Where VERB is the HTTP verb. For example:
+Where VERB is the HTTP verb. They are separated by four spaces (but that can be configured with the option `-s` of the CLI)
+For example:
 
     {api} POST    /users/login
 
@@ -107,7 +112,7 @@ Where fields are
 - ptype is the type of parameter
 - explanation. It may contain any standard markdown (no hadooc extension). It may contain newlines, but no empty lines
 
-The separator between the last three fields is "    " (four spaces) by default, but can be changed in the command line and the driver.
+The separator between the last three fields is "`    `" (four spaces) by default, but can be changed in the command line and the driver.
 Spaces after the separator are trimmed out.
 
 A list ends with an empty line.
@@ -198,7 +203,7 @@ The CLI tool makes it possible to set the highlighting theme with option `-h [th
 
 #### Charts
 
-Additionally, the hadooc compiler supports generation of graphic contents from text script from the element
+Additionally, the hadooc compiler supports the generation of graphic contents from text script with the syntax:
 
     {code:X}
     some script
@@ -206,9 +211,9 @@ Additionally, the hadooc compiler supports generation of graphic contents from t
 
 Where X is the name of a code module. The supported modules are
 
-- flowchart: generation of flowcharts based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental.
+- *flowchart*: generation of flowcharts, based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental. In particular, the parser is very picky (e.g. spaces at the beginning of lines): please first test your charts' source code on the website **before** using them in your hadooc files. The flowcharts are generated in JavaScript at the client side, which means that when flowcharts are used, the generated HTML will include the relevant JavaScript libraries from public CDMS. In other words, you won't be able to see the charts when you are not connected to the Internet. In future release we will do our best to pre-generate the charts (this feature of flowchart.js seems broken for now)
 
-More are to come !
+More are to come ! Do not hesitate to suggest your favorite library.
 
 If an unknown value for X is given, the content between the `{code}` elements is printed as source code (this reproduces the behavior of previous versions of the hadooc compiler).
 
@@ -225,17 +230,9 @@ or
 Where XXX is a comment tag used as prefix of the comment, and as CSS class name of the enclosing p element when comment display is turned on.
 By default comments are not included in the output. They can however be forced in with option "-m" of the CLI.
 
-#### Flowcharts (experimental)
+## Examples
 
-It is possible to include flowcharts with the syntax:
-
-    {code:flowchart}
-    chart source
-    {/code}
-
-The flowcharts are provided by [flowchart.js](http://flowchart.js.org).
-The parser is very picky (e.g. spaces at the begining of lines): please first test your charts' source code on the website **before**, then copy/paste in your hadooc file.
-The flowcharts are generated in JavaScript at the client side.
+The folder `./samples` contains one example of most of the features above:
 
 ## License (MIT)
 

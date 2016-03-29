@@ -71,7 +71,15 @@ program
       debug: program.verbose,
       shouldDisplayComments: program['show−comments'],
       shouldHighlightCode: program['highlightCode'],
-      highlightCssPath: program['highlightCode'] === true ? themes.getHighlightFilePathFromName('sunburst') : themes.getHighlightFilePathFromName(program['highlightCode']),
+      highlightCssPath: null // set bellow
+    }
+
+    if(conf.shouldHighlightCode) {
+      var themeName = program['highlightCode']
+      if((typeof themeName) !== 'string') {
+        themeName = 'sunburst' // default theme
+      }
+      conf.highlightCssPath = themes.getHighlightFilePathFromName(themeName)
     }
 
     if( !conf.embeddedCssPath ) {
