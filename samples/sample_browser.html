@@ -1,0 +1,138 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title> Sample of Hadooc</title>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="http://flowchart.js.org/flowchart-latest.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
+<script src="../index.js"></script>
+<style>
+/******** Embedded CSS */
+body {
+  padding: 1em 3em;
+}
+
+h1,h2,h3,h4 { font-family: sans-serif; font-weight: light }
+h2 { color: navy }
+
+h1 { font-size: 250%; line-height: 90%; }
+h1 small { font-size: 60%; color: #bfbfbf; font-weight: 200; }
+
+table.api {
+  min-width: 900px;
+  /*border-spacing: 0*/
+}
+table.api > tbody > tr > td:first-child {
+  font-size: normal;
+  padding: 1em;
+  color: navy;
+  font-family: 'Gotham Narrow SSm', 'Helvetica Neue', Helvetica, sans-serif;
+  vertical-align: top;
+  background-color: #ffffff;
+  border-right: 2px solid navy;
+  width: 200px;
+}
+
+table.api > tbody > tr > td:nth-child(2) {
+/*    padding: 0.2em 0.75em;*/
+  padding: 0.75em 0.75em 0.75em 0.5em;
+  width: 700px;
+/*    border-bottom: 0.75em solid transparent;
+  border-top: 0.75em solid transparent;
+*/  }
+
+.url { font-family: monospace; font-size: large }
+.http-verb {
+  background-color: blue;
+  border-radius: 3pt;
+  color: white;
+  padding: 0.3em;
+  margin-right: 1em;
+  font-size: 90%;
+  font-family: sans-serif;
+}
+pre.code {
+  border-radius: 5pt;
+
+  font-family: monospace;
+  padding: 1em;
+  min-width: 500px;
+  max-width: 680px;
+  white-space: pre-wrap;
+
+  background-color: #002039;
+  color: white;
+}
+
+table.api p {
+  margin: 0;
+}
+
+table.hadooc p { margin: 0 }
+
+/*table.api table > tbody > tr > td ul { margin: 0; padding-left: 1.5em }*/
+/*table.api table > tbody > tr > td li { margin: 0; }*/
+ul { margin: 0; padding-left: 1.5em; }
+li { margin: 0; }
+
+table > tbody > tr > td small { font-family: sans-serif; color: #9d9d9d; font-size: smaller }
+
+table.params > tbody > tr > td { border-bottom: 1px solid lightgrey }
+table.params > tbody > tr:last-child > td { border-bottom: 0px }
+table.params > tbody > tr > td { vertical-align: middle; padding: 0.5em }
+table.params > tbody > tr > td:first-child { font-family: monospace; font-size: large; width: 20% }
+table.params > tbody > tr > td:nth-child(2) { font-family: monospace; width: 15%; color: grey }
+
+table.api > table { padding: 0; width: 100%; margin: 0.5em 0 }
+
+table.http-status-codes > tbody > tr > td:first-child { width: 3em; background-color: white; vertical-align: top; }
+table.http-status-codes > tbody > tr > td { border-bottom: 0 }
+span.http-status-code { background-color: green; border-radius: 3pt; color: white; padding: 0.3em; margin-right: 1em; font-size: 75%; font-family: sans-serif; }
+span.http-status-code.error { background-color: red;  }
+span.http-status-code.misc { background-color: #CCCC00;  }
+
+table.enum > tbody > tr > td { padding: 0.5em; border-bottom: 1px solid lightgrey; vertical-align: top}
+table.enum > tbody > tr:last-child > td { border-bottom: 0px }
+table.enum > tbody > tr > td:first-child > span.bold { font-family: sans-serif; font-weight: bold; font-size:normal; }
+table.enum > tbody > tr > td:first-child > span.verb { font-family: monospace; font-size:large; }
+
+p.comment { padding: 0.5em 1em 0.5em 1em; color: lightgrey; font-family: sans-serif; width: 100%; background-color: #f9f9f9 }
+p.comment:hover { color: darkgrey }
+p.comment:before { content: "¶ "; font-size: small; color: #f9f9f9 }
+p.comment:hover:before { color: darkgrey }
+p.comment > span.comment-tag { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
+p.comment > span.comment-tag:before { content: "{" }
+p.comment > span.comment-tag:after { content: "}" }
+p.comment.info > span.comment-tag { color: teal }
+p.comment.todo > span.comment-tag { color: tomato }
+
+code { font-size:large }
+
+</style>
+</head>
+<body>
+
+<pre id="metadata"></pre>
+<div id="output"></div>
+
+<script>
+$( function(){
+  $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
+  var hmdStrArray = [
+    "---",
+    "title: who cares",
+    "---",
+    "# Title 1",
+    "## Title 2"
+  ]
+  var hmd = hadooc(hmdStrArray)
+
+  $("#metadata").html(JSON.stringify(hmd.metadata))
+  $("#output").html(hmd.outputLines.join("\n"))
+})
+</script>
+</body>
+</html>
