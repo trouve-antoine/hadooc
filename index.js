@@ -72,7 +72,10 @@ function Translate(context) {
     return function(s) { return s; }
   }
 
-  var translate = function(s) { return translate.localize.translate(s) }
+  var translate = function(s) {
+    translate.localize.setLocale(conf.locale || "en")
+    return translate.localize.translate(s)
+  }
 
   var localizedStrings = {
     "optional": {
@@ -86,11 +89,17 @@ function Translate(context) {
     },
     "extended code": {
       "ja": "拡張ステータス"
+    },
+    "Table of contents": {
+      "ja": "目次"
+    },
+    "level": {
+      "ja": "レベル"
     }
   }
 
   translate.localize = new require('localize')(localizedStrings)
-  translate.localize.setLocale(conf.locale || "en")
+  
   return translate;
 }
 
@@ -240,6 +249,20 @@ function httpApiDocumentationCompiler(lines, conf){
     var key = matches[1].toLowerCase()
     var value = matches[2]
     metadata[key] = value
+    if(key === 'hadooc-conf') {
+      // A magic regexp from stackoverflow.com/questions/9637517/parsing-relaxed-json-without-eval
+      var jsonValue = value.replace(/(['"])?([a-z0-9A-Z_]+)(['"])?:/g, '"$2": ');
+      var metaConf;
+      try {
+        metaConf = JSON.parse(jsonValue);
+      } catch(e) {
+        throw 'Unable to parse hadooc-conf metadata: ' + value + ". The error was: " + e.message
+      }
+      for(var confKey in metaConf) {
+        var confValue = metaConf[confKey]
+        context.conf[confKey] = confValue
+      }
+    }
   }
 
   var printApiSectionAsArray = function(apiSection, previousSection, nextSection, pushHeading) {
@@ -440,9 +463,9 @@ function httpApiDocumentationCompiler(lines, conf){
   }
   var printHeadingNode = function(node) {
     if(node.heading) {
-      return "<!-- level " + node.level + " / " + node.heading.data + " -->"
+      return "<!-- " + translate("level") + " " + node.level + " / " + node.heading.data + " -->"
     } else {
-      return "<!-- Table of contents -->"
+      return "<!-- " + translate("Table of contents") + " -->"
     }
   }
   pushHeading.lastNode = headingsTreeRoot
