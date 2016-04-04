@@ -1,10 +1,10 @@
-#! /usr/bin/env node
+"use strict";
 
 (function() {
 
 var debug = function(s){};
 
-var isServerSide = typeof module && module.exports;
+var isServerSide = ((typeof module) !== 'undefined') && module.exports;
 
 // http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery
 function htmlEscape(str) {
@@ -24,8 +24,7 @@ function Highlight(context){
   if(isServerSide) {
     highlight.hljs = require('highlight.js');
   } else {
-    var hljs;
-    highlight.hljs = hljs;
+    highlight.hljs = window.hljs;
   }
 
   if(!highlight.hljs) { throw 'Unable to load highlight.js' }
@@ -43,8 +42,7 @@ function Markdown(context){
   if(isServerSide) {
     markdown.marked = require('marked');
   } else {
-    var marked
-    markdown.marked = marked;
+    markdown.marked = window.marked;
   }
 
   if(!markdown.marked) { throw 'Unable to load marked' }
@@ -65,6 +63,35 @@ function Markdown(context){
   }
 
   return markdown;
+}
+
+function Translate(context) {
+  var conf = context.conf;
+
+  if(!isServerSide) {
+    return function(s) { return s; }
+  }
+
+  var translate = function(s) { return translate.localize.translate(s) }
+
+  var localizedStrings = {
+    "optional": {
+      "ja": "省略可能",
+    },
+    "mandatory": {
+      "ja": "必須",
+    },
+    "protected": {
+      "ja": "認証必須"
+    },
+    "extended code": {
+      "ja": "拡張ステータス"
+    }
+  }
+
+  translate.localize = new require('localize')(localizedStrings)
+  translate.localize.setLocale(conf.locale || "en")
+  return translate;
 }
 
 function httpApiDocumentationCompiler(lines, conf){
@@ -93,6 +120,7 @@ function httpApiDocumentationCompiler(lines, conf){
 
   var highlight = new Highlight(context)
   var markdown = new Markdown(context)
+  var translate = new Translate(context)
 
   context.highlight = highlight
   context.markdown = markdown
@@ -104,23 +132,7 @@ function httpApiDocumentationCompiler(lines, conf){
   debug("Configuration is: ")
   debug(conf)
 
-  var localize = new require('localize')({
-    "optional": {
-      "ja": "省略可能",
-    },
-    "mandatory": {
-      "ja": "必須",
-    },
-    "protected": {
-      "ja": "認証必須"
-    },
-    "extended code": {
-      "ja": "拡張ステータス"
-    }
-  })
-  localize.setLocale(conf.locale || "en")
 
-  function translate(s) { return localize.translate(s) }
 
   function includes(s,p){ return s.indexOf(p) != -1 }
   function startsWith(s,p){ return s.slice(0,p.length)==p }
@@ -574,6 +586,7 @@ function httpApiDocumentationCompiler(lines, conf){
     if(metadata === undefined) {
       metadata = {}
       if(prefix.isMetadataMarker(l)) { insideMetadata = true }
+      else { i--; }
     } else if(insideMetadata) {
       if(prefix.isMetadataMarker(l)) { insideMetadata = false }
       else {
@@ -600,102 +613,102 @@ function httpApiDocumentationCompiler(lines, conf){
   return { metadata: metadata,  outputLines: outputLines, context: context }
 }
 
-function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
-  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
-
-  var embeddedCssPath = hadoocConf.embeddedCssPath
-  var externalCssUrl = hadoocConf.externalCssUrl
-
-  var title = metadata.title || 'HTTP API Documentation'
-  var subTitle = metadata.subtitle || metadata['sub-title']
-  var date = metadata.date
-  var version = metadata.version
-
-  var scriptLines = []
-
-  var getFileContents = function(path) {
-    var lines = require('fs').readFileSync(path, charset).split("\n")
-    debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
-    return lines
-  }
-
-  var htmlLines = [
-    '<!doctype html>',
-    '<html>',
-    '<head>',
-    '  <meta charset="utf-8">',
-    '  <title>' + title + '</title>'
-  ]
-
-  if(context.nbOfFlowcharts > 0) {
-    htmlLines = htmlLines.concat([
-      '<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>',
-      '<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>',
-      '<script src="http://flowchart.js.org/flowchart-latest.js"></script>'
-    ])
-    scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
-  }
-
-  var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
-
-  if(hasAStyleSection) {
-    htmlLines.push('<style>')
-  }
-
-  if(embeddedCssPath) {
-    htmlLines.push("/******** Embedded CSS */")
-    htmlLines = htmlLines.concat(getFileContents(embeddedCssPath))
-  }
-
-  if(context.nbOfHighlightedCodes > 0) {
-    htmlLines.push("/******** CSS for code highlight */")
-    htmlLines = htmlLines.concat(getFileContents(hadoocConf.highlightCssPath))
-  }
-
-  if(hasAStyleSection) {
-    htmlLines.push('</style>')
-  }
-
-  if(externalCssUrl) {
-    htmlLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
-  }
-
-  htmlLines.push("</head>")
-  htmlLines.push("<body>")
-
-  var titleStr = title
-
-  if(subTitle) {
-    titleStr += '<br><small class="sub-title">' + subTitle + '</small>'
-  }
-  if(version) {
-    titleStr += '<br><small class="version">v.' + version + '</small>'
-  }
-  if(date) {
-    titleStr += '<br><small class="date">' + date + '</small>'
-  }
-
-  htmlLines.push('<h1>' + titleStr + '</h1>')
-
-  htmlLines = htmlLines.concat(bodyLines)
-
-
-  if(scriptLines.length != 0) {
-    htmlLines.push('<script>')
-    htmlLines.push('$( function(){')
-    htmlLines = htmlLines.concat(scriptLines)
-    htmlLines.push('})')
-    htmlLines.push('</script>')
-  }
-
-  htmlLines.push("</body>")
-  htmlLines.push("</html>")
-
-  callback.call(null, htmlLines)
-}
-
 if(isServerSide) {
-  function processStdin(hadoocConf, callback){
+  var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) {
+    charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+
+    var embeddedCssPath = hadoocConf.embeddedCssPath
+    var externalCssUrl = hadoocConf.externalCssUrl
+
+    var title = metadata.title || 'HTTP API Documentation'
+    var subTitle = metadata.subtitle || metadata['sub-title']
+    var date = metadata.date
+    var version = metadata.version
+
+    var scriptLines = []
+
+    var getFileContents = function(path) {
+      var lines = require('fs').readFileSync(path, charset).split("\n")
+      debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
+      return lines
+    }
+
+    var htmlLines = [
+      '<!doctype html>',
+      '<html>',
+      '<head>',
+      '  <meta charset="utf-8">',
+      '  <title>' + title + '</title>'
+    ]
+
+    if(context.nbOfFlowcharts > 0) {
+      htmlLines = htmlLines.concat([
+        '<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>',
+        '<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>',
+        '<script src="http://flowchart.js.org/flowchart-latest.js"></script>'
+      ])
+      scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
+    }
+
+    var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
+
+    if(hasAStyleSection) {
+      htmlLines.push('<style>')
+    }
+
+    if(embeddedCssPath) {
+      htmlLines.push("/******** Embedded CSS */")
+      htmlLines = htmlLines.concat(getFileContents(embeddedCssPath))
+    }
+
+    if(context.nbOfHighlightedCodes > 0) {
+      htmlLines.push("/******** CSS for code highlight */")
+      htmlLines = htmlLines.concat(getFileContents(hadoocConf.highlightCssPath))
+    }
+
+    if(hasAStyleSection) {
+      htmlLines.push('</style>')
+    }
+
+    if(externalCssUrl) {
+      htmlLines.push('<link rel="stylesheet" href="' + externalCssUrl + '">')
+    }
+
+    htmlLines.push("</head>")
+    htmlLines.push("<body>")
+
+    var titleStr = title
+
+    if(subTitle) {
+      titleStr += '<br><small class="sub-title">' + subTitle + '</small>'
+    }
+    if(version) {
+      titleStr += '<br><small class="version">v.' + version + '</small>'
+    }
+    if(date) {
+      titleStr += '<br><small class="date">' + date + '</small>'
+    }
+
+    htmlLines.push('<h1>' + titleStr + '</h1>')
+
+    htmlLines = htmlLines.concat(bodyLines)
+
+
+    if(scriptLines.length != 0) {
+      htmlLines.push('<script>')
+      htmlLines.push('$( function(){')
+      htmlLines = htmlLines.concat(scriptLines)
+      htmlLines.push('})')
+      htmlLines.push('</script>')
+    }
+
+    htmlLines.push("</body>")
+    htmlLines.push("</html>")
+
+    callback.call(null, htmlLines)
+  }
+
+  var processStdin = function(hadoocConf, callback){
     charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
     process.stdin.setEncoding(charset);
@@ -716,7 +729,7 @@ if(isServerSide) {
   }
 
   // hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
-  function processFile(inputFilePath, hadoocConf, callback) {
+  var processFile = function(inputFilePath, hadoocConf, callback) {
     charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
     require('fs').readFile(inputFilePath, charset, function(err, data){
@@ -733,8 +746,7 @@ if(isServerSide) {
     processFile: processFile
   }
 } else {
-  var window;
   window.hadooc = httpApiDocumentationCompiler;
 }
 
-})();
+}).call(this)
