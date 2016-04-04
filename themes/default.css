@@ -96,4 +96,6 @@ p.comment > span.comment-tag:after { content: "}" }
 p.comment.info > span.comment-tag { color: teal }
 p.comment.todo > span.comment-tag { color: tomato }
 
+p.comment.anonymous { display: none }
+
 code { font-size:large }

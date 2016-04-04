@@ -116,7 +116,7 @@ function httpApiDocumentationCompiler(lines, conf){
     conf = {
       charset: "utf8",
       separator: "    ",
-      shouldDisplayComment: false,
+      shouldDisplayComments: false,
       shouldHighlightCode: false,
       debug: false,
       locale: "en"
@@ -127,6 +127,7 @@ function httpApiDocumentationCompiler(lines, conf){
   var context = {
     nbOfSequenceDiagrams: 0,
     nbOfFlowcharts: 0,
+    nbOfUmlDiagrams: 0,
     nbOfHighlightedCodes: 0,
     conf: conf
   }
@@ -387,21 +388,26 @@ function httpApiDocumentationCompiler(lines, conf){
         if(content.tag) {
           lines.push('<p class="comment ' + content.tag.toLowerCase() + '"><span class="comment-tag">' + content.tag + "</span> " + content.data + '</p>')
         } else {
-          lines.push('<p class="comment">' + content.body + '</p>')
+          lines.push('<p class="comment anonymous">' + content.body + '</p>')
         }
       }
       break;
     case 'sourceCode':
       switch(content.language){
       case "flowchart":
-        context.nbOfFlowcharts = context.nbOfFlowcharts + 1 | 1
+        context.nbOfFlowcharts = context.nbOfFlowcharts + 1 || 1
         lines.push('<textarea class="source-code flowchart" style="display:none">\n' + content.data + '\n</textarea>')
         lines.push('<div class="code flowchart" id="flowchart' + context.nbOfFlowcharts + '"></div>')
         break
       case "sequence":
-        context.nbOfSequenceDiagrams = context.nbOfSequenceDiagrams + 1 | 1
+        context.nbOfSequenceDiagrams = context.nbOfSequenceDiagrams + 1 || 1
         lines.push('<textarea class="source-code sequenceDiagrams" style="display:none">\n' + content.data + '\n</textarea>')
         lines.push('<div class="code sequenceDiagrams" id="sequence' + context.nbOfSequenceDiagrams + '"></div>')
+        break
+      case "uml":
+        context.nbOfUmlDiagrams = context.nbOfUmlDiagrams + 1 || 1
+        lines.push('<textarea class="source-code umlDiagrams" style="display:none">\n' + content.data + '\n</textarea>')
+        lines.push('<canvas class="code umlDiagrams" id="sequence' + context.nbOfUmlDiagrams + '"></canvas>')
         break
       default:
         debug('Unknown language in {code} element: ' + content.language + '. Use a markdown ```` element instead.')
@@ -651,9 +657,12 @@ if(isServerSide) {
     if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
     if(jsDependencies.jquery) { urls.push("http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js") }
     if(jsDependencies.underscoreJs) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js") }
+    if(jsDependencies.lodash) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.8.2/lodash.min.js") }
     
     if(jsDependencies.flowchartJs) { urls.push("http://flowchart.js.org/flowchart-latest.js") }
     if(jsDependencies.jsSequenceDiagrams) { urls.push("https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js") }
+    if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js") }
+    
     
     var scriptElements = [];
     for(var i=0; i<urls.length; i++) {
@@ -692,13 +701,16 @@ if(isServerSide) {
     
     var hasFlowcharts = context.nbOfFlowcharts > 0;
     var hasSequenceDiagrams = context.nbOfSequenceDiagrams > 0;
+    var hasUmlDiagrams = context.nbOfUmlDiagrams > 0;
     
     htmlLines = htmlLines.concat(getJsDependenciesUrl({
       flowchartJs: hasFlowcharts,
       jsSequenceDiagrams: hasSequenceDiagrams,
       raphael: hasFlowcharts || hasSequenceDiagrams,
       jquery: true,
-      underscoreJs: hasSequenceDiagrams
+      underscoreJs: hasSequenceDiagrams || hasUmlDiagrams,
+      nomnoml: hasUmlDiagrams,
+      //lodash: hasUmlDiagrams || hasSequenceDiagrams
     }))
     
     if(hasFlowcharts) {
@@ -709,6 +721,9 @@ if(isServerSide) {
       scriptLines.push('$(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )')
     }
     
+    if(hasUmlDiagrams) {
+      scriptLines.push('$(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })')
+    }
 
     var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
 

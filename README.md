@@ -90,6 +90,7 @@ Example
     title: My HTTP API documentation
     sub-title: For you baby
     version: hairy-wall (1.2 alpha)
+    hadooc-conf: { locale: ja }
     ---
 
 ### Sections of API description array
@@ -243,8 +244,9 @@ Additionally, the hadooc compiler supports the generation of graphic contents fr
 
 Where X is the name of a code module. The supported modules are
 
-- *flowchart*: generation of flowcharts, based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental. In particular, the parser is very picky (e.g. spaces at the beginning of lines): please first test your charts' source code on the website **before** using them in your hadooc files. The flowcharts are generated in JavaScript at the client side, which means that when flowcharts are used, the generated HTML will include the relevant JavaScript libraries from public CDMS. In other words, you won't be able to see the charts when you are not connected to the Internet. In future release we will do our best to pre-generate the charts (this feature of flowchart.js seems broken for now)
-- *sequence*: generation of sequence diagrams, based on [js-sequence-diagrams](https://bramp.github.io/js-sequence-diagrams/).
+- *flowchart*: flowcharts based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental. In particular, the parser is very picky (e.g. spaces at the beginning of lines): please first test your charts' source code on the website **before** using them in your hadooc files. The flowcharts are generated in JavaScript at the client side, which means that when flowcharts are used, the generated HTML will include the relevant JavaScript libraries from public CDMS. In other words, you won't be able to see the charts when you are not connected to the Internet. In future release we will do our best to pre-generate the charts (this feature of flowchart.js seems broken for now)
+- *sequence*: sequence diagrams based on [js-sequence-diagrams](https://bramp.github.io/js-sequence-diagrams/).
+- *uml*: a selection of UML graphs, including class diagrams, from [nomnoml](http://www.nomnoml.com/).
 
 More are to come ! Do not hesitate to suggest your favorite library.
 
