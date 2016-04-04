@@ -33,6 +33,37 @@ If you have installed hadooc via npm, the CLI should be available in the path:
 
 If not, try to execute `npm link` manually.
 
+## In the browser
+
+Hadooc is also available in the browser.
+When imported, `index.js` defines the global function `hadooc` that accepts two parameters:
+
+- `lines`: the input hadooc lines. May be an array of strings or a string with lines separated by `\n`
+- `conf`: the configuration object. If not set, default values are used. The supported members are:
+  - `separator`: default to four spaces
+  - `debug`: default to `false`
+  - `shouldDisplayComments`: default to `false`
+  - `shouldHighlightCode`: default to `false`
+  - `locale`: ignored for the moment
+  - `charset`: ignored
+  - `embeddedCssPath`: ignored
+  - `externalCssUrl`: ignored
+  - `highlightCssPath`: ignored
+
+Do not forget to add the supporting code in your HTML:
+- if you use flowcharts
+  - import `raphael` and `flowchart.js`
+  - call flowchart on all the `textarea.source-code.flowchart`. The output should be put on the `div` element just after.
+- import the relevant css
+  - for hadooc itself. You can use the ones in `./themes`
+  - for highlight.js if you use it
+
+The generation of flowcharts can be achieved in jquery with the command:
+
+    $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
+
+For more information, please refer to the sample file `./samples/sample_browser.html`.
+
 ## Markdown extensions
 
 The hadooc compiler uses the package [marked](https://github.com/chjj/marked) to compile markdown content.

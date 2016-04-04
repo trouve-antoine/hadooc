@@ -105,9 +105,12 @@ function httpApiDocumentationCompiler(lines, conf){
 
   if(!conf) {
     conf = {
+      charset: "utf8",
       separator: "    ",
       shouldDisplayComment: false,
-      shouldHighlightCode: false
+      shouldHighlightCode: false,
+      debug: false,
+      locale: "en"
     }
   }
 
