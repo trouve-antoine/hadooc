@@ -2,10 +2,12 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title> Sample of Hadooc</title>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+  <title> Hadooc Sample</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="http://flowchart.js.org/flowchart-latest.js"></script>
+<script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
 <style>
 /******** Embedded CSS */
 body {
@@ -111,7 +113,7 @@ code { font-size:large }
 </style>
 </head>
 <body>
-<h1> Sample of Hadooc<br><small class="sub-title"> Example of sub-title</small><br><small class="date"> 2016/11/30</small></h1>
+<h1> Hadooc Sample<br><small class="sub-title"> Demoes most of the functionalities</small><br><small class="date"> 2016/4/4</small></h1>
 <h2 id="api-1-x-user-management-api">API 1.x User management API</h2>
 
 <h3 id="api-1-1-login">API 1.1 Login</h3>
@@ -230,6 +232,13 @@ c2(yes)->io->e
 c2(no)->op2->e
 </textarea>
 <div class="code flowchart" id="flowchart1"></div>
+<textarea class="source-code sequenceDiagrams" style="display:none">
+Andrew->China: Says Hello
+Note right of China: China thinks\nabout it
+China-->Andrew: How are you?
+Andrew->>China: I am good thanks!
+</textarea>
+<div class="code sequenceDiagrams" id="sequence1"></div>
 <!-- Table of contents -->
 <!-- level 1 / # API 1.x User management API -->
 <!-- level 2 / ## API 1.1 Login -->
@@ -237,6 +246,7 @@ c2(no)->op2->e
 <script>
 $( function(){
 $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
+$(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
 })
 </script>
 </body>

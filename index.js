@@ -116,6 +116,7 @@ function httpApiDocumentationCompiler(lines, conf){
 
   var outputLines = []
   var context = {
+    nbOfSequenceDiagrams: 0,
     nbOfFlowcharts: 0,
     nbOfHighlightedCodes: 0,
     conf: conf
@@ -345,7 +346,7 @@ function httpApiDocumentationCompiler(lines, conf){
       if(content.isMandatory) { smallTexts.push(translate("mandatory")) }
       if(content.isProtected) { smallTexts.push(translate("protected")) }
       if(content.isOptional ) { smallTexts.push(translate("optional")) }
-      smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
+      var smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
       lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+markdown(content.paramType)+'</td><td>'+markdown(content.desc)+'</td></tr>')
       break;
     case 'string':
@@ -370,10 +371,14 @@ function httpApiDocumentationCompiler(lines, conf){
     case 'sourceCode':
       switch(content.language){
       case "flowchart":
-        context.nbOfFlowcharts++
+        context.nbOfFlowcharts = context.nbOfFlowcharts + 1 | 1
         lines.push('<textarea class="source-code flowchart" style="display:none">\n' + content.data + '\n</textarea>')
         lines.push('<div class="code flowchart" id="flowchart' + context.nbOfFlowcharts + '"></div>')
-        // debug(require('raphael'))
+        break
+      case "sequence":
+        context.nbOfSequenceDiagrams = context.nbOfSequenceDiagrams + 1 | 1
+        lines.push('<textarea class="source-code sequenceDiagrams" style="display:none">\n' + content.data + '\n</textarea>')
+        lines.push('<div class="code sequenceDiagrams" id="sequence' + context.nbOfSequenceDiagrams + '"></div>')
         break
       default:
         debug('Unknown language in {code} element: ' + content.language + '. Use a markdown ```` element instead.')
@@ -617,8 +622,26 @@ function httpApiDocumentationCompiler(lines, conf){
 }
 
 if(isServerSide) {
+  var getJsDependenciesUrl = function(jsDependencies) {
+    var urls = []
+    
+    if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
+    if(jsDependencies.jquery) { urls.push("http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js") }
+    if(jsDependencies.underscoreJs) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js") }
+    
+    if(jsDependencies.flowchartJs) { urls.push("http://flowchart.js.org/flowchart-latest.js") }
+    if(jsDependencies.jsSequenceDiagrams) { urls.push("https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js") }
+    
+    var scriptElements = [];
+    for(var i=0; i<urls.length; i++) {
+      scriptElements.push('<script src="' + urls[i] + '"></script>')
+    }
+    
+    return scriptElements
+  }
+  
   var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) {
-    charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+    var charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
     var embeddedCssPath = hadoocConf.embeddedCssPath
     var externalCssUrl = hadoocConf.externalCssUrl
@@ -643,15 +666,26 @@ if(isServerSide) {
       '  <meta charset="utf-8">',
       '  <title>' + title + '</title>'
     ]
-
-    if(context.nbOfFlowcharts > 0) {
-      htmlLines = htmlLines.concat([
-        '<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>',
-        '<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>',
-        '<script src="http://flowchart.js.org/flowchart-latest.js"></script>'
-      ])
+    
+    var hasFlowcharts = context.nbOfFlowcharts > 0;
+    var hasSequenceDiagrams = context.nbOfSequenceDiagrams > 0;
+    
+    htmlLines = htmlLines.concat(getJsDependenciesUrl({
+      flowchartJs: hasFlowcharts,
+      jsSequenceDiagrams: hasSequenceDiagrams,
+      raphael: hasFlowcharts || hasSequenceDiagrams,
+      jquery: true,
+      underscoreJs: hasSequenceDiagrams
+    }))
+    
+    if(hasFlowcharts) {
       scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
     }
+    
+    if(hasSequenceDiagrams) {
+      scriptLines.push('$(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )')
+    }
+    
 
     var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
 
@@ -733,7 +767,7 @@ if(isServerSide) {
 
   // hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
   var processFile = function(inputFilePath, hadoocConf, callback) {
-    charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+    var charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
     require('fs').readFile(inputFilePath, charset, function(err, data){
       if(err) { throw err.message }
