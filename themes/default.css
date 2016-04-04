@@ -95,3 +95,5 @@ p.comment > span.comment-tag:before { content: "{" }
 p.comment > span.comment-tag:after { content: "}" }
 p.comment.info > span.comment-tag { color: teal }
 p.comment.todo > span.comment-tag { color: tomato }
+
+code { font-size:large }

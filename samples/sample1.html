@@ -106,6 +106,8 @@ p.comment > span.comment-tag:after { content: "}" }
 p.comment.info > span.comment-tag { color: teal }
 p.comment.todo > span.comment-tag { color: tomato }
 
+code { font-size:large }
+
 </style>
 </head>
 <body>
@@ -125,10 +127,10 @@ p.comment.todo > span.comment-tag { color: tomato }
 <td>Post request parameters</td>
 <td>
 <table class="hadooc params">
-<tr><td>username<br><small>mandatory</small></td><td><p>@string</p>
+<tr><td>username<br><small>必須</small></td><td><p>@string</p>
 </td><td><p>The user name</p>
 </td></tr>
-<tr><td>password<br><small>mandatory</small></td><td><p>@string</p>
+<tr><td>password<br><small>必須</small></td><td><p>@string</p>
 </td><td><p>The password.</p>
 </td></tr>
 </table>
@@ -138,14 +140,14 @@ p.comment.todo > span.comment-tag { color: tomato }
 <td>JSON response parameters</td>
 <td>
 <table class="hadooc params">
-<tr><td>userid<br><small>mandatory<br>protected</small></td><td><p>@string</p>
+<tr><td>userid<br><small>必須<br>認証必須</small></td><td><p>@string</p>
 </td><td><p>The userid, only if authentication succeeded. May be</p>
 <ul>
 <li>the email</li>
 <li>the display name</li>
 </ul>
 </td></tr>
-<tr><td>role<br><small>protected<br>optional</small></td><td><p>@role</p>
+<tr><td>role<br><small>認証必須<br>省略可能</small></td><td><p>@role</p>
 </td><td><p>One of the value below.</p>
 </td></tr>
 </table>

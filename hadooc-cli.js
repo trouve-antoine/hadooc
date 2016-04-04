@@ -71,7 +71,7 @@ program
       debug: program.verbose,
       shouldDisplayComments: program['show−comments'],
       shouldHighlightCode: program['highlightCode'],
-      highlightCssPath: null // set bellow
+      highlightCssPath: null // set below
     }
 
     if(conf.shouldHighlightCode) {

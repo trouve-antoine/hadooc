@@ -1,14 +1,80 @@
 #! /usr/bin/env node
 
-// configuration = {
-//    separator: " "
-// }
-//
+(function() {
 
 var debug = function(s){};
 
+var isServerSide = typeof module && module.exports;
+
+// http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery
+function htmlEscape(str) {
+  return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+}
+
+function Highlight(context){
+  var highlight = function(language, data) {
+    return highlight.hljs.highlight(language, data).value
+  }
+
+  if(isServerSide) {
+    highlight.hljs = require('highlight.js');
+  } else {
+    var hljs;
+    highlight.hljs = hljs;
+  }
+
+  if(!highlight.hljs) { throw 'Unable to load highlight.js' }
+
+  return highlight
+}
+
+function Markdown(context){
+  var conf = context.conf
+
+  var markdown = function(l) {
+    return markdown.marked(l, { renderer : markdown.renderer } )
+  }
+
+  if(isServerSide) {
+    markdown.marked = require('marked');
+  } else {
+    var marked
+    markdown.marked = marked;
+  }
+
+  if(!markdown.marked) { throw 'Unable to load marked' }
+
+  markdown.renderer = new markdown.marked.Renderer()
+  markdown.renderer.code = function(data, language) {
+    if(language) {
+      if(conf.shouldHighlightCode) {
+        data = context.highlight(language, data);
+        context.nbOfHighlightedCodes ++;
+      } else {
+        data = htmlEscape(data)
+      }
+      return '<pre class="hljs code lang-' + language + '">'+data+'</pre>'
+    } else {
+      return '<code>' + data + '</code>'
+    }
+  }
+
+  return markdown;
+}
+
 function httpApiDocumentationCompiler(lines, conf){
-  if(lines.constructor!=Array) { throw 'Please specify an array of lines in input.' }
+  if(lines.constructor==Array) {
+    // OK
+  } else if(lines.constructor==String) {
+    lines = lines.split("\n")
+  } else {
+     throw 'Please specify an array or a string in input.'
+  }
 
   if(!conf) {
     conf = {
@@ -21,8 +87,15 @@ function httpApiDocumentationCompiler(lines, conf){
   var outputLines = []
   var context = {
     nbOfFlowcharts: 0,
-    nbOfHighlightedCodes: 0
+    nbOfHighlightedCodes: 0,
+    conf: conf
   }
+
+  var highlight = new Highlight(context)
+  var markdown = new Markdown(context)
+
+  context.highlight = highlight
+  context.markdown = markdown
 
   if(conf.debug) {
     debug = function(s) { console.log(s) }
@@ -30,28 +103,6 @@ function httpApiDocumentationCompiler(lines, conf){
 
   debug("Configuration is: ")
   debug(conf)
-
-  // Gets marked from node.js or the browser
-  var markdown = function(l) {
-    return markdown.marked(l, { renderer : markdown.renderer} )
-  }
-  markdown.marked = require('marked');
-  if(!markdown.marked) { throw 'Unable to load marked.' }
-  markdown.renderer = new markdown.marked.Renderer()
-  markdown.renderer.code = function(data, language) {
-    if(language) {
-      if(conf.shouldHighlightCode) {
-        // data = require('highlight.js').highlightAuto(data).value;
-        data = require('highlight.js').highlight(language, data).value;
-        context.nbOfHighlightedCodes ++;
-      } else {
-        data = htmlEscape(data)
-      }
-      return '<pre class="hljs code lang-' + language + '">'+data+'</pre>'
-    } else {
-      return '<code>' + data + '</code>'
-    }
-  }
 
   var localize = new require('localize')({
     "optional": {
@@ -74,16 +125,6 @@ function httpApiDocumentationCompiler(lines, conf){
   function includes(s,p){ return s.indexOf(p) != -1 }
   function startsWith(s,p){ return s.slice(0,p.length)==p }
   function contentAfter(s,p){ return s.slice(p.length) }
-
-  // http://stackoverflow.com/questions/1219860/html-encoding-in-javascript-jquery
-  function htmlEscape(str) {
-    return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;');
-  }
 
   var prefix = {};
   prefix.isMetadataMarker = function(l) { return l === "---" }
@@ -317,6 +358,7 @@ function httpApiDocumentationCompiler(lines, conf){
         context.nbOfFlowcharts++
         lines.push('<textarea class="source-code flowchart" style="display:none">\n' + content.data + '\n</textarea>')
         lines.push('<div class="code flowchart" id="flowchart' + context.nbOfFlowcharts + '"></div>')
+        // debug(require('raphael'))
         break
       default:
         debug('Unknown language in {code} element: ' + content.language + '. Use a markdown ```` element instead.')
@@ -558,38 +600,6 @@ function httpApiDocumentationCompiler(lines, conf){
   return { metadata: metadata,  outputLines: outputLines, context: context }
 }
 
-function processStdin(hadoocConf, callback){
-  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
-
-  process.stdin.setEncoding(charset);
-
-  var dataFromStdin = ""
-  process.stdin.on('readable', function() {
-    var chunk = process.stdin.read();
-    if (chunk !== null) {
-      dataFromStdin += chunk
-    }
-  });
-
-  process.stdin.on('end', function() {
-    var dataLines = dataFromStdin.split("\n")
-    var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
-    wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
-  });
-}
-
-// hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
-function processFile(inputFilePath, hadoocConf, callback) {
-  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
-
-  require('fs').readFile(inputFilePath, charset, function(err, data){
-    if(err) { throw err.message }
-    var dataLines = data.split("\n")
-    var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
-    wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
-  })
-}
-
 function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
   charset = (hadoocConf && hadoocConf.charset) || 'utf8'
 
@@ -684,9 +694,47 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
   callback.call(null, htmlLines)
 }
 
-module.exports = {
-  processStdin: processStdin,
-  processFile: processFile
+if(isServerSide) {
+  function processStdin(hadoocConf, callback){
+    charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+
+    process.stdin.setEncoding(charset);
+
+    var dataFromStdin = ""
+    process.stdin.on('readable', function() {
+      var chunk = process.stdin.read();
+      if (chunk !== null) {
+        dataFromStdin += chunk
+      }
+    });
+
+    process.stdin.on('end', function() {
+      var dataLines = dataFromStdin.split("\n")
+      var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
+      wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
+    });
+  }
+
+  // hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
+  function processFile(inputFilePath, hadoocConf, callback) {
+    charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+
+    require('fs').readFile(inputFilePath, charset, function(err, data){
+      if(err) { throw err.message }
+      var dataLines = data.split("\n")
+      var compiled = httpApiDocumentationCompiler(dataLines, hadoocConf)
+      wrapHtmlBody(compiled.metadata, compiled.outputLines, compiled.context, hadoocConf, callback)
+    })
+  }
+
+  module.exports = {
+    hadooc: httpApiDocumentationCompiler,
+    processStdin: processStdin,
+    processFile: processFile
+  }
+} else {
+  var window;
+  window.hadooc = httpApiDocumentationCompiler;
 }
 
-// processStdin( { separator: "    " } )
+})();
