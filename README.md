@@ -39,7 +39,7 @@ Hadooc is also available in the browser.
 When imported, `index.js` defines the global function `hadooc` that accepts two parameters:
 
 - `lines`: the input hadooc lines. May be an array of strings or a string with lines separated by `\n`
-- `conf`: the configuration object. If not set, default values are used. The supported members are:
+- `conf`: the configuration object. If not set, default values are used. The supported members are:<a name="conf"></a>
   - `separator`: default to four spaces
   - `debug`: default to `false`
   - `shouldDisplayComments`: default to `false`
@@ -78,10 +78,11 @@ Metadata are of the format
     key: value
 
 Where the key is not case sensitive. The hadooc compiler accepts the following keys
-- title
-- subtitle or sub-title
-- version
-- date
+- `title`
+- `subtitle` or `sub-title`
+- `version`. Use free format
+- `date`. Use free format
+- `hadooc-conf`. Specify forced values for hadooc the hadooc configuration Overrides default values and the command line. Accepts single-line JSON; quotes around key values are not required. Supported configuration keys are the same as the [`conf` parameter of the in-browser `hadooc` function](#conf). 
 
 Example
 
@@ -243,7 +244,7 @@ Additionally, the hadooc compiler supports the generation of graphic contents fr
 Where X is the name of a code module. The supported modules are
 
 - *flowchart*: generation of flowcharts, based on [flowchart.js](http://flowchart.js.org/). This feature is still a bit experimental because flowchart.js is itself experimental. In particular, the parser is very picky (e.g. spaces at the beginning of lines): please first test your charts' source code on the website **before** using them in your hadooc files. The flowcharts are generated in JavaScript at the client side, which means that when flowcharts are used, the generated HTML will include the relevant JavaScript libraries from public CDMS. In other words, you won't be able to see the charts when you are not connected to the Internet. In future release we will do our best to pre-generate the charts (this feature of flowchart.js seems broken for now)
-- *sequence*: generattin of sequence diagrams, based on [js-sequence-diagrams](https://bramp.github.io/js-sequence-diagrams/).
+- *sequence*: generation of sequence diagrams, based on [js-sequence-diagrams](https://bramp.github.io/js-sequence-diagrams/).
 
 More are to come ! Do not hesitate to suggest your favorite library.
 
