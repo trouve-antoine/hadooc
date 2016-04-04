@@ -1,6 +1,6 @@
 {
   "name": "hadooc",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "description": "Markdown with domain specific extensions to easily generate documentation for HTTP API. Contains the language specification as well as the compiler to HTML. Written in Javascript for Node.js.",
   "main": "index.js",
   "directories": {
@@ -10,9 +10,7 @@
     "commander": "^2.9.0",
     "localize": "^0.4.7",
     "marked": "^0.3.5",
-    "flowchart.js": "^1.6.2",
     "highlight.js": "^9.2.0"
-
   },
   "devDependencies": {},
   "scripts": {
