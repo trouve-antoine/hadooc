@@ -58,9 +58,10 @@ program
   .option('-t, --theme <themename>', 'The name of a preset CSS to embed into the output HTML file. Themes are overriden by option -b. Default to "default"')
   .option('-l, --list-themes', 'Prints the list of available themes for both hadooc and the code highlight', listThemesAndExit)
   .option('-g, --language <locale>', 'Sets the locale for generated HTML')
-  .option('-m, --show−comments', 'Show comments in HTML')
+  .option('-m, --show−comments', 'Shows comments in HTML')
   .option('-v, --verbose', 'Prints a bunch of debug information')
-  .option('-h, --highlight-code [theme]', 'Highlight code blocks with language. You may specify a theme name (default: sunburst).')
+  .option('-h, --highlight-code [theme]', 'Highlights code blocks with language. You may specify a theme name (default: sunburst).')
+  .option('--toc', 'Prints the table of content.')
   .action(function(file) {
     var conf = {
       charset: program.charset || 'utf8',
@@ -71,7 +72,8 @@ program
       debug: program.verbose,
       shouldDisplayComments: program['show−comments'],
       shouldHighlightCode: program['highlightCode'],
-      highlightCssPath: null // set below
+      highlightCssPath: null, // set below
+      shouldPrintToc: program['toc'],
     }
 
     if(conf.shouldHighlightCode) {

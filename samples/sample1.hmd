@@ -2,7 +2,7 @@
 title: Hadooc Sample
 sub-title: Demoes most of the functionalities
 date: 2016/4/4
-hadooc-conf: { locale: "ja" }
+hadooc-conf: { locale: "ja", shouldPrintToc: true }
 ---
 
 # API 1.x User management API

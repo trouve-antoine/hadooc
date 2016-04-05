@@ -111,16 +111,36 @@ p.comment.todo > span.comment-tag { color: tomato }
 
 p.comment.anonymous { display: none }
 
+canvas.code.umlDiagrams { max-width: 95% }
+
 code { font-size:large }
 
+body > nav.hadooc.toc {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  line-height: 1.5em;
+  vertical-align: middle;
+  background-color: rgba(150,200,255,0.8);
+  text-align: center;
+  padding: 0.25em;
+}
+
+body > nav.hadooc.toc:hover {
+  background-color: rgba(150,200,255,0.95);
+}
+
+body > nav.hadooc.toc select {
+  width: 80%;
+  text-align: left
+}
 </style>
 </head>
 <body>
 <h1> Hadooc Sample<br><small class="sub-title"> Demoes most of the functionalities</small><br><small class="date"> 2016/4/4</small></h1>
-<h2 id="api-1-x-user-management-api">API 1.x User management API</h2>
-
-<h3 id="api-1-1-login">API 1.1 Login</h3>
-
+<h2 id="heading0">API 1.x User management API</h2>
+<h3 id="heading1">API 1.1 Login</h3>
 <table class="hadooc api">
 <tr>
 <td>URL</td>
@@ -208,8 +228,7 @@ code { font-size:large }
 <tr><td><span class="value bold">bold</span></td><td><p> value</p>
 </td></tr>
 </table>
-<h3 id="api-1-2-logout">API 1.2 Logout</h3>
-
+<h3 id="heading2">API 1.2 Logout</h3>
 <pre class="hljs code lang-json">{
   &quot;name&quot;: &quot;Chuck Noris&quot;,
   &quot;power&quot;: 850
@@ -265,15 +284,33 @@ Andrew->>China: I am good thanks!
 [<actor>Sailor] - [<usecase>shiver me;timbers]
 </textarea>
 <canvas class="code umlDiagrams" id="sequence1"></canvas>
-<!-- 目次 -->
-<!-- レベル 1 / # API 1.x User management API -->
-<!-- レベル 2 / ## API 1.1 Login -->
-<!-- レベル 2 / ## API 1.2 Logout -->
+<nav class="hadooc toc"> <select>
+<option value="heading0"># API 1.x User management API</option>
+<option value="heading1">## API 1.1 Login</option>
+<option value="heading2">## API 1.2 Logout</option>
+</select></nav>
 <script>
 $( function(){
 $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
 $(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
 $(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })
+$("nav.hadooc.toc > select").change(function(){
+  var newValue = $(this).val()
+  var headingForValue = document.getElementById(newValue)
+  headingForValue && headingForValue.scrollIntoView()
+})
+$(window).on("scroll", function(){
+  $("h2,h3,h4").each(function(i, e){
+    e = $(e)
+    var positionInWindow = e.offset().top - $(window).scrollTop()
+    var isVisible = (positionInWindow > 10)
+                    && (positionInWindow < $(window).scrollTop() + $(window).height()/3 );
+    if(!isVisible) { return true }
+    var headingId = e.attr("id")
+    $("nav.hadooc.toc > select").val(headingId)
+    return false
+  })
+})
 })
 </script>
 </body>

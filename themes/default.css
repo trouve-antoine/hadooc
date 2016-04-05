@@ -101,3 +101,24 @@ p.comment.anonymous { display: none }
 canvas.code.umlDiagrams { max-width: 95% }
 
 code { font-size:large }
+
+body > nav.hadooc.toc {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  line-height: 1.5em;
+  vertical-align: middle;
+  background-color: rgba(150,200,255,0.8);
+  text-align: center;
+  padding: 0.25em;
+}
+
+body > nav.hadooc.toc:hover {
+  background-color: rgba(150,200,255,0.95);
+}
+
+body > nav.hadooc.toc select {
+  width: 80%;
+  text-align: left
+}

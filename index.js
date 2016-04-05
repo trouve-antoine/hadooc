@@ -174,6 +174,7 @@ var HadoocConfiguration = (function(){
   addValueDefault('shouldDisplayComments', false)
   addValueDefault('shouldHighlightCode', false)
   addValueDefault('highlightTheme', 'sunburst')
+  addValueDefault('shouldPrintToc', false)
   
   addGetSetDefault('highlightCssPath',
     function() {
@@ -473,8 +474,8 @@ function httpApiDocumentationCompiler(lines, conf){
       }
       break;
     case 'heading':
-      lines.push(markdown("#" + content.data.trim()))
-      pushHeading(content)
+      var heading = pushHeading(content)
+      lines.push(markdown("<h" + (1+heading.level) + ' id="' + heading.id + '">' + heading.label + '</h' + (1+heading.level) + '>'))
       break;
     case 'comment':
       if(conf.shouldDisplayComments) {
@@ -550,27 +551,30 @@ function httpApiDocumentationCompiler(lines, conf){
     return lines
   }
 
-  var headingsTreeRoot = { parent: null, children: [], level:0, heading: null }
+  var headingsTreeRoot = { parent: null, children: [], level:0, heading: null, label: null }
   var pushHeading = function(heading) {
-    // heading = { type: 'heading', level: nbSharp, data: l }
+    // heading = { type: 'heading', level: 3, data: "### hoge" }
     var lastNode = pushHeading.lastNode
     var parent = lastNode
     while(parent.level > heading.level-1) { parent = parent.parent }
-    var newNode = { parent: parent, children: [], level:heading.level, heading: heading }
+    var id = "heading" + (pushHeading.nextHeadingNb++)
+    var newNode = { parent: parent, children: [], level:heading.level, heading: heading, label: heading.data.substring(heading.level).trim(), id: id }
     parent.children.push(newNode)
     pushHeading.lastNode = newNode
+    return newNode
   }
   var printHeadingNode = function(node) {
     if(node.heading) {
-      return "<!-- " + translate("level") + " " + node.level + " / " + node.heading.data + " -->"
+      return '<option value="' + node.id + '">' + node.heading.data + '</option>'
     } else {
-      return "<!-- " + translate("Table of contents") + " -->"
+      return undefined
     }
   }
   pushHeading.lastNode = headingsTreeRoot
+  pushHeading.nextHeadingNb = 0
   var printHeadingTree = function(node) {
-    if(node == null) { node = headingsTreeRoot }
-    var lines = [ printHeadingNode(node) ]
+    if(node == null) { node = headingsTreeRoot; var lines = [] }
+    else { var lines = [ printHeadingNode(node) ] }
     for(var i=0; i<node.children.length; i++) {
       var child = node.children[i]
       lines = lines.concat(printHeadingTree(child))
@@ -736,7 +740,11 @@ function httpApiDocumentationCompiler(lines, conf){
 
   flushApiSections()
 
-  outputLines = outputLines.concat(printHeadingTree())
+  if(conf.shouldPrintToc) {
+    outputLines.push('<nav class="hadooc toc"> <select>')
+    outputLines = outputLines.concat(printHeadingTree())
+    outputLines.push('</select></nav>')
+  }
 
   if(!outputLines || outputLines.constructor !== Array) { throw 'Outputlines is not an array !' }
 
@@ -818,6 +826,28 @@ if(isServerSide) {
     if(hasUmlDiagrams) {
       scriptLines.push('$(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })')
     }
+    
+    if(hadoocConf.shouldPrintToc) {
+      scriptLines = scriptLines.concat(
+        ['$("nav.hadooc.toc > select").change(function(){',
+        '  var newValue = $(this).val()',
+        '  var headingForValue = document.getElementById(newValue)',
+        '  headingForValue && headingForValue.scrollIntoView()',
+        '})',
+        '$(window).on("scroll", function(){',
+        '  $("h2,h3,h4").each(function(i, e){',
+        '    e = $(e)',
+        '    var positionInWindow = e.offset().top - $(window).scrollTop()',
+        '    var isVisible = (positionInWindow > 10)',
+        '                    && (positionInWindow < $(window).scrollTop() + $(window).height()/3 );',    
+        '    if(!isVisible) { return true }',
+        '    var headingId = e.attr("id")',
+        '    $("nav.hadooc.toc > select").val(headingId)',    
+        '    return false',
+        '  })',
+        '})'
+      ])
+    }
 
     var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
 
@@ -861,7 +891,6 @@ if(isServerSide) {
     htmlLines.push('<h1>' + titleStr + '</h1>')
 
     htmlLines = htmlLines.concat(bodyLines)
-
 
     if(scriptLines.length != 0) {
       htmlLines.push('<script>')
