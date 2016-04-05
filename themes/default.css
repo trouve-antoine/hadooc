@@ -98,4 +98,6 @@ p.comment.todo > span.comment-tag { color: tomato }
 
 p.comment.anonymous { display: none }
 
+canvas.code.umlDiagrams { max-width: 95% }
+
 code { font-size:large }

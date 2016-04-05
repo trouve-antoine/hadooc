@@ -103,6 +103,106 @@ function Translate(context) {
   return translate;
 }
 
+function makeArray(args) {
+  return Array.prototype.slice.call(args)
+}
+
+var path = (function(){
+  if(typeof require === 'undefined') {
+    return { join: function(){ return makeArray(arguments).join("/") } }
+  } else {
+    return require('path')
+  }
+})()
+
+var hadoocPaths = (function(){
+  var paths = {}
+  // Defines homeFolder
+  if(typeof __filename === 'undefined') {
+    paths.homeFolder = "."
+  } else {
+    paths.homeFolder = path.dirname(__filename)
+  }
+  // The theme folder
+  paths.themes = path.join(paths.homeFolder, "themes")
+  // The hljs css folder
+  paths.hljsThemes = path.join(paths.homeFolder, "node_modules", "highlight.js", "styles")
+  
+  return paths
+})()
+
+function getHomeDir(){
+  
+}
+
+var HadoocConfiguration = (function(){
+  var baseObject = function(conf) {
+    if(conf) {
+      for(var key in conf) {
+        var value = conf[key]
+        this[key] = value
+      }
+    }
+  }
+  
+  function addValueDefault(key, value) {
+    Object.defineProperty(baseObject.prototype, key, {
+      value: value,
+      writable: true,
+      configurable: false,
+      enumerable: true
+    })  
+  }
+  
+  function addGetSetDefault(key, getter, setter) {
+    Object.defineProperty(baseObject.prototype, key, {
+      configurable: false,
+      enumerable: true,
+      get: getter,
+      set: setter
+    })
+  }
+  
+  // default values
+  
+  addValueDefault('charset', 'utf8')
+  addValueDefault('separator', '    ')
+  addValueDefault('embeddedHadoocTheme', 'default')
+  addValueDefault('externalCssUrl', undefined)
+  addValueDefault('locale', 'en')
+  addValueDefault('debug', false)
+  addValueDefault('shouldDisplayComments', false)
+  addValueDefault('shouldHighlightCode', false)
+  addValueDefault('highlightTheme', 'sunburst')
+  
+  addGetSetDefault('highlightCssPath',
+    function() {
+      if(this._highlightCssPath) { return this._highlightCssPath; }
+      else {
+        return this.highlightTheme && path.join(hadoocPaths.hljsThemes, this.highlightTheme + ".css")
+      }
+    },
+    function(value) {
+      this._highlightCssPath = value
+    })
+   
+  addGetSetDefault('embeddedCssPath',
+    function() {
+      if(this._embeddedCssPath) { return this._embeddedCssPath; }
+      else {
+        return this.embeddedHadoocTheme && path.join(hadoocPaths.themes, this.embeddedHadoocTheme + ".css")
+      }
+    },
+    function(value) {
+      this._embeddedCssPath = value
+    })
+  
+  return baseObject
+})()
+
+// for(var pop in new HadoocConfiguration()) { console.log(pop) }
+// var hf = new HadoocConfiguration()   
+
 function httpApiDocumentationCompiler(lines, conf){
   if(lines.constructor==Array) {
     // OK
@@ -112,15 +212,8 @@ function httpApiDocumentationCompiler(lines, conf){
      throw 'Please specify an array or a string in input.'
   }
 
-  if(!conf) {
-    conf = {
-      charset: "utf8",
-      separator: "    ",
-      shouldDisplayComments: false,
-      shouldHighlightCode: false,
-      debug: false,
-      locale: "en"
-    }
+  if( (conf === undefined) || (conf.constructor !== HadoocConfiguration) ) {
+    conf = new HadoocConfiguration(conf)
   }
 
   var outputLines = []
@@ -686,8 +779,9 @@ if(isServerSide) {
     var scriptLines = []
 
     var getFileContents = function(path) {
+      debug("Read file: " + path + ' with encoding ' + charset)
       var lines = require('fs').readFileSync(path, charset).split("\n")
-      debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
+      // debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
       return lines
     }
 
@@ -785,6 +879,8 @@ if(isServerSide) {
 
   var processStdin = function(hadoocConf, callback){
     charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+    
+    hadoocConf = new HadoocConfiguration(hadoocConf)
 
     process.stdin.setEncoding(charset);
 
@@ -806,6 +902,8 @@ if(isServerSide) {
   // hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
   var processFile = function(inputFilePath, hadoocConf, callback) {
     var charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+    
+    hadoocConf = new HadoocConfiguration(hadoocConf)
 
     require('fs').readFile(inputFilePath, charset, function(err, data){
       if(err) { throw err.message }
