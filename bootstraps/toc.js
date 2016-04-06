@@ -40,6 +40,7 @@ hadooc.toc.init = function(parent) {
       // is visible
       return true
     })
+    if(!lastVisitedHeading) { lastVisitedHeading = $(headings[0]) }
     var currentHeadingId = lastVisitedHeading.attr('id')
     selectElement.val(currentHeadingId)
   })
