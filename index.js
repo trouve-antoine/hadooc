@@ -131,10 +131,6 @@ var hadoocPaths = (function(){
   return paths
 })()
 
-function getHomeDir(){
-  
-}
-
 var HadoocConfiguration = (function(){
   var baseObject = function(conf) {
     if(conf) {
@@ -752,7 +748,15 @@ function httpApiDocumentationCompiler(lines, conf){
 }
 
 if(isServerSide) {
-  var getJsDependenciesUrl = function(jsDependencies) {
+  var getFileContents = function(path, conf) {
+    var charset = conf.charset
+    debug("Read file: " + path + ' with encoding ' + charset)
+    var lines = require('fs').readFileSync(path, charset).split("\n")
+    // debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
+    return lines
+  }
+    
+  var getJsDependenciesUrl = function(jsDependencies, conf) {
     var urls = []
     
     if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
@@ -770,12 +774,18 @@ if(isServerSide) {
       scriptElements.push('<script src="' + urls[i] + '"></script>')
     }
     
+    if(jsDependencies["hadooc-toc"]) {
+      var tocFilePath = path.join(hadoocPaths.homeFolder, "bootstraps", "toc.js") 
+      scriptElements.push("<script>")
+      scriptElements.push("/* Toc bootstrap */")
+      scriptElements = scriptElements.concat(getFileContents(tocFilePath, conf))
+      scriptElements.push("</script>")
+    }
+    
     return scriptElements
   }
   
   var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) {
-    var charset = (hadoocConf && hadoocConf.charset) || 'utf8'
-
     var embeddedCssPath = hadoocConf.embeddedCssPath
     var externalCssUrl = hadoocConf.externalCssUrl
 
@@ -785,13 +795,6 @@ if(isServerSide) {
     var version = metadata.version
 
     var scriptLines = []
-
-    var getFileContents = function(path) {
-      debug("Read file: " + path + ' with encoding ' + charset)
-      var lines = require('fs').readFileSync(path, charset).split("\n")
-      // debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
-      return lines
-    }
 
     var htmlLines = [
       '<!doctype html>',
@@ -812,8 +815,9 @@ if(isServerSide) {
       jquery: true,
       underscoreJs: hasSequenceDiagrams || hasUmlDiagrams,
       nomnoml: hasUmlDiagrams,
-      //lodash: hasUmlDiagrams || hasSequenceDiagrams
-    }))
+      //lodash: hasUmlDiagrams || hasSequenceDiagrams,
+      "hadooc-toc": hadoocConf.shouldPrintToc
+    }, hadoocConf))
     
     if(hasFlowcharts) {
       scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
@@ -828,25 +832,7 @@ if(isServerSide) {
     }
     
     if(hadoocConf.shouldPrintToc) {
-      scriptLines = scriptLines.concat(
-        ['$("nav.hadooc.toc > select").change(function(){',
-        '  var newValue = $(this).val()',
-        '  var headingForValue = document.getElementById(newValue)',
-        '  headingForValue && headingForValue.scrollIntoView()',
-        '})',
-        '$(window).on("scroll", function(){',
-        '  $("h2,h3,h4").each(function(i, e){',
-        '    e = $(e)',
-        '    var positionInWindow = e.offset().top - $(window).scrollTop()',
-        '    var isVisible = (positionInWindow > 10)',
-        '                    && (positionInWindow < $(window).scrollTop() + $(window).height()/3 );',    
-        '    if(!isVisible) { return true }',
-        '    var headingId = e.attr("id")',
-        '    $("nav.hadooc.toc > select").val(headingId)',    
-        '    return false',
-        '  })',
-        '})'
-      ])
+      scriptLines.push("hadooc.toc.init()")
     }
 
     var hasAStyleSection = context.nbOfHighlightedCodes || embeddedCssPath
@@ -857,12 +843,12 @@ if(isServerSide) {
 
     if(embeddedCssPath) {
       htmlLines.push("/******** Embedded CSS */")
-      htmlLines = htmlLines.concat(getFileContents(embeddedCssPath))
+      htmlLines = htmlLines.concat(getFileContents(embeddedCssPath, hadoocConf))
     }
 
     if(context.nbOfHighlightedCodes > 0) {
       htmlLines.push("/******** CSS for code highlight */")
-      htmlLines = htmlLines.concat(getFileContents(hadoocConf.highlightCssPath))
+      htmlLines = htmlLines.concat(getFileContents(hadoocConf.highlightCssPath, hadoocConf))
     }
 
     if(hasAStyleSection) {

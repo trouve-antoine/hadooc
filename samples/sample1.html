@@ -9,6 +9,55 @@
 <script src="http://flowchart.js.org/flowchart-latest.js"></script>
 <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
 <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
+<script>
+// Toc file (/Users/trouve/Boulot/github/hadooc/bootstraps/toc.js)
+if(typeof hadooc === 'undefined') {
+  var hadooc = {}
+}
+
+if(typeof $ === 'undefined') {
+  throw 'Unable to find jQuery'
+}
+
+hadooc.toc = { }
+
+hadooc.toc.init = function(parent) {
+  if(!parent) { parent = $("body") }
+  var headings = $([])
+  
+  var selectElement = parent.find("nav.hadooc.toc > select")
+  
+  selectElement.find("option").each(function(i,e){
+    var headingId = e.value
+    var heading = document.getElementById(headingId)
+    if(!heading) { throw 'Unable to find  the header with id: ' + headingId }
+    headings.push(heading)
+  })
+  
+  selectElement.change(function(){
+    var headingId = $(this).val()
+    var heading = document.getElementById(headingId)
+    heading && heading.scrollIntoView()
+  })
+  
+  $(window).on("scroll", function(){
+    var lastVisitedHeading = null
+    headings.each(function(i,heading){
+      heading = $(heading)
+      var headingPositionInWindow = heading.offset().top - $(window).scrollTop()
+      var isAboveWindow = headingPositionInWindow < 0
+      var isUnderWindow = headingPositionInWindow > $(window).height()
+      if(isUnderWindow) { return false }
+      lastVisitedHeading = heading
+      if(isAboveWindow) { return true }
+      // is visible
+      return false
+    })
+    var currentHeadingId = lastVisitedHeading.attr('id')
+    selectElement.val(currentHeadingId)
+  })
+}
+</script>
 <style>
 /******** Embedded CSS */
 body {
@@ -294,23 +343,7 @@ $( function(){
 $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
 $(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
 $(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })
-$("nav.hadooc.toc > select").change(function(){
-  var newValue = $(this).val()
-  var headingForValue = document.getElementById(newValue)
-  headingForValue && headingForValue.scrollIntoView()
-})
-$(window).on("scroll", function(){
-  $("h2,h3,h4").each(function(i, e){
-    e = $(e)
-    var positionInWindow = e.offset().top - $(window).scrollTop()
-    var isVisible = (positionInWindow > 10)
-                    && (positionInWindow < $(window).scrollTop() + $(window).height()/3 );
-    if(!isVisible) { return true }
-    var headingId = e.attr("id")
-    $("nav.hadooc.toc > select").val(headingId)
-    return false
-  })
-})
+hadooc.toc.init()
 })
 </script>
 </body>
