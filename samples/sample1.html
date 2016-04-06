@@ -58,6 +58,7 @@ hadooc.toc.init = function(parent) {
     selectElement.val(currentHeadingId)
   })
 }
+
 /* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/flowcharts.js */
 if(typeof hadooc === 'undefined') {
   var hadooc = {}
@@ -74,6 +75,7 @@ hadooc.flowcharts.init = function(parent) {
   
   parent.find(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
 }
+
 /* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/sequence-diagrams.js */
 if(typeof hadooc === 'undefined') {
   var hadooc = {}
@@ -90,6 +92,7 @@ hadooc.sequenceDiagrams.init = function(parent) {
   
   parent.find(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
 }
+
 /* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/uml-diagrams.js */
 if(typeof hadooc === 'undefined') {
   var hadooc = {}
@@ -105,6 +108,7 @@ hadooc.umlDiagrams.init = function(parent) {
   if(!parent) { parent = $("body") }
   parent.find(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })
 }
+
 </script>
 <style>
 /******** Embedded CSS */
@@ -212,7 +216,7 @@ canvas.code.umlDiagrams { max-width: 95% }
 
 code { font-size:large }
 
-body > nav.hadooc.toc {
+nav.hadooc.toc {
   position: fixed;
   left: 0;
   bottom: 0;
@@ -224,11 +228,11 @@ body > nav.hadooc.toc {
   padding: 0.25em;
 }
 
-body > nav.hadooc.toc:hover {
+nav.hadooc.toc:hover {
   background-color: rgba(150,200,255,0.95);
 }
 
-body > nav.hadooc.toc select {
+nav.hadooc.toc select {
   width: 80%;
   text-align: left
 }

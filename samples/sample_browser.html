@@ -3,142 +3,154 @@
 <head>
   <meta charset="utf-8">
   <title> Sample of Hadooc</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script src="http://flowchart.js.org/flowchart-latest.js"></script>
-<script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
-<script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
-<script src="../dist/hadooc.js"></script>
-<script src="../bootstraps/uml-diagrams.js"></script>
-<style>
-/******** Embedded CSS */
-body {
-  padding: 1em 3em;
-}
-
-h1,h2,h3,h4 { font-family: sans-serif; font-weight: light }
-h2 { color: navy }
-
-h1 { font-size: 250%; line-height: 90%; }
-h1 small { font-size: 60%; color: #bfbfbf; font-weight: 200; }
-
-table.api {
-  min-width: 900px;
-  /*border-spacing: 0*/
-}
-table.api > tbody > tr > td:first-child {
-  font-size: normal;
-  padding: 1em;
-  color: navy;
-  font-family: 'Gotham Narrow SSm', 'Helvetica Neue', Helvetica, sans-serif;
-  vertical-align: top;
-  background-color: #ffffff;
-  border-right: 2px solid navy;
-  width: 200px;
-}
-
-table.api > tbody > tr > td:nth-child(2) {
-/*    padding: 0.2em 0.75em;*/
-  padding: 0.75em 0.75em 0.75em 0.5em;
-  width: 700px;
-/*    border-bottom: 0.75em solid transparent;
-  border-top: 0.75em solid transparent;
-*/  }
-
-.url { font-family: monospace; font-size: large }
-.http-verb {
-  background-color: blue;
-  border-radius: 3pt;
-  color: white;
-  padding: 0.3em;
-  margin-right: 1em;
-  font-size: 90%;
-  font-family: sans-serif;
-}
-pre.code {
-  border-radius: 5pt;
-
-  font-family: monospace;
-  padding: 1em;
-  min-width: 500px;
-  max-width: 680px;
-  white-space: pre-wrap;
-
-  background-color: #002039;
-  color: white;
-}
-
-table.api p {
-  margin: 0;
-}
-
-table.hadooc p { margin: 0 }
-
-/*table.api table > tbody > tr > td ul { margin: 0; padding-left: 1.5em }*/
-/*table.api table > tbody > tr > td li { margin: 0; }*/
-ul { margin: 0; padding-left: 1.5em; }
-li { margin: 0; }
-
-table > tbody > tr > td small { font-family: sans-serif; color: #9d9d9d; font-size: smaller }
-
-table.params > tbody > tr > td { border-bottom: 1px solid lightgrey }
-table.params > tbody > tr:last-child > td { border-bottom: 0px }
-table.params > tbody > tr > td { vertical-align: middle; padding: 0.5em }
-table.params > tbody > tr > td:first-child { font-family: monospace; font-size: large; width: 20% }
-table.params > tbody > tr > td:nth-child(2) { font-family: monospace; width: 15%; color: grey }
-
-table.api > table { padding: 0; width: 100%; margin: 0.5em 0 }
-
-table.http-status-codes > tbody > tr > td:first-child { width: 3em; background-color: white; vertical-align: top; }
-table.http-status-codes > tbody > tr > td { border-bottom: 0 }
-span.http-status-code { background-color: green; border-radius: 3pt; color: white; padding: 0.3em; margin-right: 1em; font-size: 75%; font-family: sans-serif; }
-span.http-status-code.error { background-color: red;  }
-span.http-status-code.misc { background-color: #CCCC00;  }
-
-table.enum > tbody > tr > td { padding: 0.5em; border-bottom: 1px solid lightgrey; vertical-align: top}
-table.enum > tbody > tr:last-child > td { border-bottom: 0px }
-table.enum > tbody > tr > td:first-child > span.bold { font-family: sans-serif; font-weight: bold; font-size:normal; }
-table.enum > tbody > tr > td:first-child > span.verb { font-family: monospace; font-size:large; }
-
-p.comment { padding: 0.5em 1em 0.5em 1em; color: lightgrey; font-family: sans-serif; width: 100%; background-color: #f9f9f9 }
-p.comment:hover { color: darkgrey }
-p.comment:before { content: "¶ "; font-size: small; color: #f9f9f9 }
-p.comment:hover:before { color: darkgrey }
-p.comment > span.comment-tag { font-family: monospace; color: crimson; font-variant: small-caps; font-size: large; font-weight: bold }
-p.comment > span.comment-tag:before { content: "{" }
-p.comment > span.comment-tag:after { content: "}" }
-p.comment.info > span.comment-tag { color: teal }
-p.comment.todo > span.comment-tag { color: tomato }
-
-code { font-size:large }
-
-</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="http://flowchart.js.org/flowchart-latest.js"></script>
+  <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
+  <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
+  <link rel="stylesheet" href="../themes/default.css">
+  <script src="../dist/hadooc.js"></script>
 </head>
 <body>
 
 <pre id="metadata"></pre>
 <div id="output"></div>
 
+<textarea id="hmd-src" style="display: none">
+---
+title: Hadooc Sample
+sub-title: Demoes most of the functionalities
+date: 2016/4/4
+hadooc-conf: { locale: "ja", shouldPrintToc: true }
+---
+
+# API 1.x User management API
+
+## API 1.1 Login
+
+** URL
+
+{api} POST    /users/login
+
+** Post request parameters
+
+{!} username    @string    The user name
+{!} password    @string    The password.
+
+** JSON response parameters
+
+{!$} userid     @string    The userid, only if authentication succeeded. May be
+- the email
+- the display name
+{?$} role       @role    One of the value below.
+
+** User Roles
+
+{-:root} the king
+- can read everything
+- can write everywhere
+{-:nobody} a peasant
+{-:other} be careful
+
+** HTTP Response Status Codes
+
+{http:200} Success
+{http:403} The user is logged in, but does not have enough permission
+{http:500} Unable to access the data:
+- the database is off
+- the FBI was listening to the communication
+{http:503} The janitor has tripped on the server's plug, again.
+
+**
+
+It is OK to have some free markdown after an API section. You can use:
+- all marked extensions
+- even hadooc extensions
+
+For example, this is an enumeration:
+{-:verb} value
+{=:bold} value
+
+---- {todo} Some comment that won't appear in the HTML unless you explicitly asked for it.
+
+## API 1.2 Logout
+
+````json
+{
+  "name": "Chuck Noris",
+  "power": 850
+}
+````
+
+{code:json}
+{
+  "name": "Sangoku",
+  "power": 350
+}
+{/code}
+
+{code:flowchart}
+st=>start: Start|past:>http://www.google.com[blank]
+e=>end: End|future:>http://www.google.com
+op1=>operation: My Operation|past
+op2=>operation: Stuff|current
+sub1=>subroutine: My Subroutine|invalid
+cond=>condition: Yes
+or No?|approved:>http://www.google.com
+c2=>condition: Good idea|rejected
+io=>inputoutput: catch something...|future
+st->op1(right)->cond
+cond(yes, right)->c2
+cond(no)->sub1(left)->op1
+c2(yes)->io->e
+c2(no)->op2->e
+{/code}
+
+{code:sequence}
+Andrew->China: Says Hello
+Note right of China: China thinks\nabout it
+China-->Andrew: How are you?
+Andrew->>China: I am good thanks!
+{/code}
+
+{code:uml}
+[Pirate|eyeCount: Int|raid();pillage()|
+  [beard]--[parrot]
+  [beard]-:>[foul mouth]
+]
+
+[<abstract>Marauder]<:--[Pirate]
+[Pirate]- 0..7[mischief]
+[jollyness]->[Pirate]
+[jollyness]->[rum]
+[jollyness]->[singing]
+[Pirate]-> *[rum|tastiness: Int|swig()]
+[Pirate]->[singing]
+[singing]<->[rum]
+
+[<start>st]->[<state>plunder]
+[plunder]->[<choice>more loot]
+[more loot]->[st]
+[more loot] no ->[<end>e]
+
+[<actor>Sailor] - [<usecase>shiver me;timbers]
+{/code}
+</textarea>
+
 <script>
 $( function(){
   $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
-  var hmdStrArray = [
-    "---",
-    "title: who cares",
-    "---",
-    "# Title 1",
-    "## Title 2",
-    "{code:uml}",
-    "[some package | ]",
-    "{/code}"
-  ]
-  var hmd = hadooc(hmdStrArray)
+  var hmdStr = $("#hmd-src").val()
+  var hmd = hadooc(hmdStr)
 
   $("#metadata").html(JSON.stringify(hmd.metadata))
   $("#output").html(hmd.outputLines.join("\n"))
   
   hadooc.umlDiagrams.init()
+  hadooc.flowcharts.init()
+  hadooc.sequenceDiagrams.init()
+  hadooc.toc.init()
 })
 </script>
 </body>

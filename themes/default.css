@@ -102,7 +102,7 @@ canvas.code.umlDiagrams { max-width: 95% }
 
 code { font-size:large }
 
-body > nav.hadooc.toc {
+nav.hadooc.toc {
   position: fixed;
   left: 0;
   bottom: 0;
@@ -114,11 +114,11 @@ body > nav.hadooc.toc {
   padding: 0.25em;
 }
 
-body > nav.hadooc.toc:hover {
+nav.hadooc.toc:hover {
   background-color: rgba(150,200,255,0.95);
 }
 
-body > nav.hadooc.toc select {
+nav.hadooc.toc select {
   width: 80%;
   text-align: left
 }
