@@ -22,7 +22,7 @@
 title: Hadooc Sample
 sub-title: Demoes most of the functionalities
 date: 2016/4/4
-hadooc-conf: { locale: "ja", shouldPrintToc: true }
+hadooc-conf: { shouldPrintToc: true }
 ---
 
 # API 1.x User management API
@@ -142,7 +142,7 @@ Andrew->>China: I am good thanks!
 $( function(){
   $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
   var hmdStr = $("#hmd-src").val()
-  var hmd = hadooc(hmdStr)
+  var hmd = hadooc(hmdStr, { locale: "ja" })
 
   $("#metadata").html(JSON.stringify(hmd.metadata))
   $("#output").html(hmd.outputLines.join("\n"))

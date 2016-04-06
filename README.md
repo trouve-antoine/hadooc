@@ -35,8 +35,8 @@ If not, try to execute `npm link` manually.
 
 ## In the browser
 
-Hadooc is also available in the browser.
-When imported, `index.js` defines the global function `hadooc` that accepts two parameters:
+Hadooc is also available in the browser via the bundle file in `dist/hadooc.js` (generated with [browserify](http://browserify.org)).
+When imported, it defines the global function `hadooc` that accepts two parameters:
 
 - `lines`: the input hadooc lines. May be an array of strings or a string with lines separated by `\n`
 - `conf`: the configuration object. If not set, default values are used. The supported members are:<a name="conf"></a>
@@ -44,24 +44,49 @@ When imported, `index.js` defines the global function `hadooc` that accepts two 
   - `debug`: default to `false`
   - `shouldDisplayComments`: default to `false`
   - `shouldHighlightCode`: default to `false`
-  - `locale`: ignored for the moment
+  - `locale`: only `en` and `ja` for now
   - `charset`: ignored
   - `embeddedCssPath`: ignored
   - `externalCssUrl`: ignored
   - `highlightCssPath`: ignored
+  
+Below is a basic example (with jQuery):
+````js
+  parent = $("body")
+  var hmdStr = "# A title\n{http:200} OK"
+  var hmd = hadooc(hmdStr, { locale: "en" })
+  parent.html(hmd.outputLines.join("\n"))
+````
 
 Do not forget to add the supporting code in your HTML:
-- if you use flowcharts
-  - import `raphael` and `flowchart.js`
-  - call flowchart on all the `textarea.source-code.flowchart`. The output should be put on the `div` element just after.
-- import the relevant css
-  - for hadooc itself. You can use the ones in `./themes`
-  - for highlight.js if you use it
-
-The generation of flowcharts can be achieved in jquery with the command:
-
-    $(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
-
+- the scripts (e.g. in the `<head>` section). For example (you can use newer of self-hosted versions of the same libraries, the one below are proved to work): 
+````html
+  <!-- Mandatory (for now) -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+  <!-- If you use flowcharts or sequence diagrams -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+  <!-- If you use sequence or uml diagrams -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <!-- If you use flowcharts -->
+  <script src="http://flowchart.js.org/flowchart-latest.js"></script>
+  <!-- If you use sequence diagrams -->
+  <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
+  <!-- If you use uml diagrams -->
+  <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
+````
+- some CSS. For example, you can use the theme css under `themes/` (for example `themes/default.css`)
+- the initialization code if you use dynamic functionalities
+````js
+  // If you use flowcharts
+  hadooc.flowcharts.init(parent)
+  // If you use sequence diagrams
+  hadooc.sequenceDiagrams.init(parent)
+  // If you use uml diagrams
+  hadooc.umlDiagrams.init(parent)
+  // If you have generates a table of content (only one per page for now)
+  hadooc.toc.init(parent)
+````
+   
 For more information, please refer to the sample file `./samples/sample_browser.html`.
 
 ## Markdown extensions
@@ -267,7 +292,10 @@ By default comments are not included in the output. They can however be forced i
 
 ## Examples
 
-The folder `./samples` contains one example of most of the features above:
+The folder `./samples` contains two important examples of most of the features above:
+
+- `sample1.hmd`: to be compiled at server-side
+- `sample_browser.hmd`: to be opened in the browser 
 
 ## License (MIT)
 
