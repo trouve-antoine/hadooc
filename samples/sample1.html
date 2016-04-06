@@ -10,7 +10,7 @@
 <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
 <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
 <script>
-/* Toc bootstrap */
+/* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/toc.js */
 if(typeof hadooc === 'undefined') {
   var hadooc = {}
 }
@@ -57,6 +57,53 @@ hadooc.toc.init = function(parent) {
     var currentHeadingId = lastVisitedHeading.attr('id')
     selectElement.val(currentHeadingId)
   })
+}
+/* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/flowcharts.js */
+if(typeof hadooc === 'undefined') {
+  var hadooc = {}
+}
+
+if(typeof $ === 'undefined') {
+  throw 'Unable to find jQuery'
+}
+
+hadooc.flowcharts = { }
+
+hadooc.flowcharts.init = function(parent) {
+  if(!parent) { parent = $("body") }
+  
+  parent.find(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
+}
+/* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/sequence-diagrams.js */
+if(typeof hadooc === 'undefined') {
+  var hadooc = {}
+}
+
+if(typeof $ === 'undefined') {
+  throw 'Unable to find jQuery'
+}
+
+hadooc.sequenceDiagrams = { }
+
+hadooc.sequenceDiagrams.init = function(parent) {
+  if(!parent) { parent = $("body") }
+  
+  parent.find(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
+}
+/* bootstrap file: /Users/trouve/Boulot/github/hadooc/bootstraps/uml-diagrams.js */
+if(typeof hadooc === 'undefined') {
+  var hadooc = {}
+}
+
+if(typeof $ === 'undefined') {
+  throw 'Unable to find jQuery'
+}
+
+hadooc.umlDiagrams = { }
+
+hadooc.umlDiagrams.init = function(parent) {
+  if(!parent) { parent = $("body") }
+  parent.find(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })
 }
 </script>
 <style>
@@ -341,9 +388,9 @@ Andrew->>China: I am good thanks!
 </select></nav>
 <script>
 $( function(){
-$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })
-$(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )
-$(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })
+hadooc.flowcharts.init()
+hadooc.sequenceDiagrams.init()
+hadooc.umlDiagrams.init()
 hadooc.toc.init()
 })
 </script>

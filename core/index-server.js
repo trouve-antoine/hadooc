@@ -20,7 +20,7 @@ var getFileContents = function(path, conf) {
   return lines
 }
   
-var getJsDependenciesUrl = function(jsDependencies, conf) {
+function getJsDependenciesUrl(jsDependencies, conf) {
   var urls = []
   
   if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
@@ -38,18 +38,27 @@ var getJsDependenciesUrl = function(jsDependencies, conf) {
     scriptElements.push('<script src="' + urls[i] + '"></script>')
   }
   
-  if(jsDependencies["hadooc-toc"]) {
-    var tocFilePath = path.join(hadoocPaths.homeFolder, "bootstraps", "toc.js") 
+  var urlsToInclude = []
+  
+  if(jsDependencies["hadooc-toc"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "toc.js")) }
+  if(jsDependencies["hadooc-flowcharts"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "flowcharts.js")) }
+  if(jsDependencies["hadooc-sequence-diagrams"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "sequence-diagrams.js")) }
+  if(jsDependencies["hadooc-uml-diagrams"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "uml-diagrams.js")) }
+  
+  if(urlsToInclude.length != 0) {
     scriptElements.push("<script>")
-    scriptElements.push("/* Toc bootstrap */")
-    scriptElements = scriptElements.concat(getFileContents(tocFilePath, conf))
+    for(var i=0; i<urlsToInclude.length; i++) {
+      var url = urlsToInclude[i]
+      scriptElements.push("/* bootstrap file: " + url + " */")
+      scriptElements = scriptElements.concat(getFileContents(url, conf))
+    }
     scriptElements.push("</script>")
   }
   
   return scriptElements
 }
 
-var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) {
+function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
   var embeddedCssPath = hadoocConf.embeddedCssPath
   var externalCssUrl = hadoocConf.externalCssUrl
 
@@ -80,19 +89,22 @@ var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) 
     underscoreJs: hasSequenceDiagrams || hasUmlDiagrams,
     nomnoml: hasUmlDiagrams,
     //lodash: hasUmlDiagrams || hasSequenceDiagrams,
-    "hadooc-toc": hadoocConf.shouldPrintToc
+    "hadooc-toc": hadoocConf.shouldPrintToc,
+    "hadooc-flowcharts": hasFlowcharts,
+    "hadooc-sequence-diagrams": hasSequenceDiagrams,
+    "hadooc-uml-diagrams": hasUmlDiagrams
   }, hadoocConf))
   
   if(hasFlowcharts) {
-    scriptLines.push('$(".source-code.flowchart").each(function(id, e) { flowchart.parse(e.value).drawSVG($(e).next().attr("id")) })')
+    scriptLines.push('hadooc.flowcharts.init()')
   }
   
   if(hasSequenceDiagrams) {
-    scriptLines.push('$(".source-code.sequenceDiagrams").each(function(id, e) { Diagram.parse(e.value).drawSVG($(e).next().attr("id"), { theme:"simple" } ) } )')
+    scriptLines.push('hadooc.sequenceDiagrams.init()')
   }
   
   if(hasUmlDiagrams) {
-    scriptLines.push('$(".source-code.umlDiagrams").each(function(id, e) { nomnoml.draw($(e).next()[0], e.value) })')
+    scriptLines.push('hadooc.umlDiagrams.init()')
   }
   
   if(hadoocConf.shouldPrintToc) {
@@ -156,8 +168,8 @@ var wrapHtmlBody = function(metadata, bodyLines, context, hadoocConf, callback) 
   callback.call(null, htmlLines)
 }
 
-var processStdin = function(hadoocConf, callback){
-  charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+function processStdin(hadoocConf, callback){
+  charset = hadoocConf.charset
   
   hadoocConf = new HadoocConfiguration(hadoocConf)
 
@@ -178,9 +190,8 @@ var processStdin = function(hadoocConf, callback){
   });
 }
 
-// hadooCconf: additionaly to the parameters from httpApiDocumentationCompiler, accepts the text charset string in charset (default to 'utf8')
-var processFile = function(inputFilePath, hadoocConf, callback) {
-  var charset = (hadoocConf && hadoocConf.charset) || 'utf8'
+function processFile(inputFilePath, hadoocConf, callback) {
+  var charset = hadoocConf.charset
   
   hadoocConf = new HadoocConfiguration(hadoocConf)
 
