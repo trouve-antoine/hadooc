@@ -1,7 +1,5 @@
 (function(){
   
-var isServerSide = require('../utils/is-server-side')
-  
 var HadoocConfiguration = require('../lib/hadooc-configuration')
 
 var Highlight = require('../lib/hadooc-highlight')

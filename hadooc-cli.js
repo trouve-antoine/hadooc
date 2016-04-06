@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-// Command Line Interface for HADOOC
+// Command Line Interface for HADOOC. Only works server side (obviously)
 
 var program = require('commander')
 var hadooc = require('./')

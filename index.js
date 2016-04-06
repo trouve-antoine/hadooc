@@ -7,7 +7,7 @@ var isServerSide = require('./utils/is-server-side')
 if(isServerSide) {
   module.exports = require('./core/index-server')
 } else {
-  window.hadooc = require('./core/hadooc-compiler')
+  window.hadooc = require('./core/index-client')
 }
 
 }).call(this)

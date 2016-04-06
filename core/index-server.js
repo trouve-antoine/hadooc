@@ -2,8 +2,6 @@
   
 var debug = function(s){};
 
-var isServerSide = require('../utils/is-server-side')
-
 var path = require('../utils/path')
 
 var hadoocPaths = require('../lib/hadooc-paths')
