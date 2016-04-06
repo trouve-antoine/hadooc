@@ -1,0 +1,1 @@
+module.export = ((typeof module) !== 'undefined') && module.exports;

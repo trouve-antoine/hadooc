@@ -10,7 +10,7 @@
 <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
 <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
 <script>
-// Toc file (/Users/trouve/Boulot/github/hadooc/bootstraps/toc.js)
+/* Toc bootstrap */
 if(typeof hadooc === 'undefined') {
   var hadooc = {}
 }
@@ -46,13 +46,14 @@ hadooc.toc.init = function(parent) {
       heading = $(heading)
       var headingPositionInWindow = heading.offset().top - $(window).scrollTop()
       var isAboveWindow = headingPositionInWindow < 0
-      var isUnderWindow = headingPositionInWindow > $(window).height()
+      var isUnderWindow = headingPositionInWindow > $(window).height()/6
       if(isUnderWindow) { return false }
       lastVisitedHeading = heading
       if(isAboveWindow) { return true }
       // is visible
-      return false
+      return true
     })
+    if(!lastVisitedHeading) { lastVisitedHeading = $(headings[0]) }
     var currentHeadingId = lastVisitedHeading.attr('id')
     selectElement.val(currentHeadingId)
   })
