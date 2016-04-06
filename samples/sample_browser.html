@@ -3,12 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title> Sample of Hadooc</title>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 <script src="http://flowchart.js.org/flowchart-latest.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.2.0/highlight.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.5/marked.min.js"></script>
-<script src="../index.js"></script>
+<script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
+<script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
+<script src="../dist/hadooc.js"></script>
+<script src="../bootstraps/uml-diagrams.js"></script>
 <style>
 /******** Embedded CSS */
 body {
@@ -126,12 +128,17 @@ $( function(){
     "title: who cares",
     "---",
     "# Title 1",
-    "## Title 2"
+    "## Title 2",
+    "{code:uml}",
+    "[some package | ]",
+    "{/code}"
   ]
   var hmd = hadooc(hmdStrArray)
 
   $("#metadata").html(JSON.stringify(hmd.metadata))
   $("#output").html(hmd.outputLines.join("\n"))
+  
+  hadooc.umlDiagrams.init()
 })
 </script>
 </body>

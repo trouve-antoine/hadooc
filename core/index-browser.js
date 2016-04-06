@@ -1,5 +1,5 @@
 (function(){
- 
- module.exports = require('./hadooc-compiler')
-  
+
+window.hadooc = require('./hadooc-compiler')
+
 })()

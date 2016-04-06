@@ -1,13 +1,5 @@
-"use strict";
-
 (function() {
 
-var isServerSide = require('./utils/is-server-side')
+module.exports = require('./core/index-server')
 
-if(isServerSide) {
-  module.exports = require('./core/index-server')
-} else {
-  window.hadooc = require('./core/index-browser')
-}
-
-}).call(this)
+})(this)

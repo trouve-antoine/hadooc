@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "commander": "^2.9.0",
-    "localize": "^0.4.7",
     "marked": "^0.3.5",
     "highlight.js": "^9.2.0"
   },

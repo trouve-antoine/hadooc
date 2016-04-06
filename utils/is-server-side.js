@@ -1,1 +1,1 @@
-module.export = ((typeof module) !== 'undefined') && module.exports;
+module.export = !process.browser //((typeof module) !== 'undefined') && module.exports;
