@@ -1,5 +1,8 @@
 body {
   padding: 1em 3em;
+  min-width: 950px;
+  max-width: 2000px;
+  margin: auto
 }
 
 h1,h2,h3,h4 { font-family: sans-serif; font-weight: light }
@@ -9,7 +12,7 @@ h1 { font-size: 250%; line-height: 90%; }
 h1 small { font-size: 60%; color: #bfbfbf; font-weight: 200; }
 
 table.api {
-  min-width: 900px;
+  width: 100%;
   /*border-spacing: 0*/
 }
 table.api > tbody > tr > td:first-child {
@@ -47,7 +50,7 @@ pre.code {
   font-family: monospace;
   padding: 1em;
   min-width: 500px;
-  max-width: 680px;
+  max-width: 90%;
   white-space: pre-wrap;
 
   background-color: #002039;

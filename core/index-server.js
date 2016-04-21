@@ -21,15 +21,15 @@ var getFileContents = function(path, conf) {
 function getJsDependenciesUrl(jsDependencies, conf) {
   var urls = []
   
-  if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
-  if(jsDependencies.jquery) { urls.push("http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js") }
-  if(jsDependencies.underscoreJs) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js") }
-  if(jsDependencies.lodash) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.8.2/lodash.min.js") }
+  // if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
+  // if(jsDependencies.jquery) { urls.push("http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js") }
+  // if(jsDependencies.underscoreJs) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js") }
+  // if(jsDependencies.lodash) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.8.2/lodash.min.js") }
   
-  if(jsDependencies.flowchartJs) { urls.push("http://flowchart.js.org/flowchart-latest.js") }
-  if(jsDependencies.jsSequenceDiagrams) { urls.push("https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js") }
-  if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js") }
-  
+  // if(jsDependencies.flowchartJs) { urls.push("http://flowchart.js.org/flowchart-latest.js") }
+  // if(jsDependencies.jsSequenceDiagrams) { urls.push("https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js") }
+  // // if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js") }
+  // if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/7468813b0cbd1d37ecb5c80639843b970221e56d/dist/nomnoml.js") }
   
   var scriptElements = [];
   for(var i=0; i<urls.length; i++) {
@@ -37,6 +37,14 @@ function getJsDependenciesUrl(jsDependencies, conf) {
   }
   
   var urlsToInclude = []
+  
+  if(jsDependencies.raphael) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "raphael-min.js")); }
+  if(jsDependencies.jquery) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "jquery.min.js")); }
+  if(jsDependencies.underscoreJs) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "underscore-min.js")); }
+  
+  if(jsDependencies.flowchartJs) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "flowchart.ugly.js")); }
+  if(jsDependencies.jsSequenceDiagrams) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "sequence-diagram.ugly.js")); }
+  if(jsDependencies.nomnoml) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "nomnoml.ugly.js")); }
   
   if(jsDependencies["hadooc-toc"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "toc.js")) }
   if(jsDependencies["hadooc-flowcharts"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "flowcharts.js")) }

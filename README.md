@@ -1,7 +1,7 @@
 # hadooc
 Markdown with domain specific extensions to easily generate documentation for HTTP API. Contains the language specification as well as the compiler to HTML. Written in Javascript for Node.js.
 
-For now it only works at server side, but it should be easy to make it work at client side too.
+It works at both server and client sides (read the explanations below).
 
 ## Command Line Interface
 
@@ -26,6 +26,7 @@ To get help execute it with parameter "--help" as below:
       -m, --show−comments            Show comments in HTML
       -v, --verbose                  Prints a bunch of debug information
       -h, --highlight-code [theme]   Highlight code blocks with language. You may specify a theme name (default: sunburst).
+      --toc                          Prints the table of content.
 
 If you have installed hadooc via npm, the CLI should be available in the path:
 
@@ -72,7 +73,7 @@ Do not forget to add the supporting code in your HTML:
   <!-- If you use sequence diagrams -->
   <script src="https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js"></script>
   <!-- If you use uml diagrams -->
-  <script src="https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js"></script>
+  <script src="https://raw.githubusercontent.com/skanaar/nomnoml/7468813b0cbd1d37ecb5c80639843b970221e56d/dist/nomnoml.js"></script>
 ````
 - some CSS. For example, you can use the theme css under `themes/` (for example `themes/default.css`)
 - the initialization code if you use dynamic functionalities

@@ -58,7 +58,7 @@ function httpApiDocumentationCompiler(lines, conf){
   prefix.isMetadataMarker = function(l) { return l === "---" }
   prefix.isApiSection = function(l){ return startsWith(l,"** ") }
   prefix.isApi = function(l){ return startsWith(l, "{api}") }
-  prefix.isParameter = function(l) { return /{!\$|\?\$|\$|!|\?|\-}/.test(l) }
+  prefix.isParameter = function(l) { return /{d?(!\$|\?\$|\$|!|\?)|\-}/.test(l) }
   prefix.isEnum = function(l) { return startsWith(l, "{-:") || startsWith(l, "{=:") }
   prefix.isHttpCode = function(l){ return startsWith(l, "{http:") }
   prefix.isApiEnd = function(l) { return (l=="**") }
@@ -98,7 +98,8 @@ function httpApiDocumentationCompiler(lines, conf){
       desc: data,
       isMandatory: includes(prefix, "!"),
       isProtected: includes(prefix, "$"),
-      isOptional:  includes(prefix, "?")
+      isOptional:  includes(prefix, "?"),
+      isDeprecated:  includes(prefix, "d")
     }
     debug.print("Adds parameter: " + parameter)
     return parameter
@@ -272,6 +273,7 @@ function httpApiDocumentationCompiler(lines, conf){
       if(content.isMandatory) { smallTexts.push(translate("mandatory")) }
       if(content.isProtected) { smallTexts.push(translate("protected")) }
       if(content.isOptional ) { smallTexts.push(translate("optional")) }
+      if(content.isDeprecated ) { smallTexts.push(translate("deprecated")) }
       var smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
       lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+markdown(content.paramType)+'</td><td>'+markdown(content.desc)+'</td></tr>')
       break;
