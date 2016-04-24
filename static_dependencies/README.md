@@ -1,0 +1,1 @@
+# Static dependencies for hadooc
