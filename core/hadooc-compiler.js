@@ -105,7 +105,7 @@ function httpApiDocumentationCompiler(lines, conf){
     return parameter
   }
   field.httpCode = function(l) {
-    var cbraceAt = l.indexOf('} ')
+    var cbraceAt = l.indexOf('}')
     var ss = l.slice(1,cbraceAt).split(':')
     var desc = l.slice(cbraceAt+1)
     if(ss.length==2) {
@@ -126,11 +126,9 @@ function httpApiDocumentationCompiler(lines, conf){
     }
   }
   field.enum = function(l) {
-    // var cbraceAt = l.indexOf('} ')
-    // var ss = l.slice(1,cbraceAt).split(':')
     var ss = /{(.):(.+)}/g.exec(l)
     if(!ss) { throw 'Bad value code in: ' + l + ' (expected: "{-:xxx} hoge" or "{-:xxx}")' }
-
+    
     return {
       type: 'enum',
       value: ss[2],
@@ -274,7 +272,7 @@ function httpApiDocumentationCompiler(lines, conf){
       if(content.isProtected) { smallTexts.push(translate("protected")) }
       if(content.isOptional ) { smallTexts.push(translate("optional")) }
       if(content.isDeprecated ) { smallTexts.push(translate("deprecated")) }
-      var smallText = (smallTexts.length != 0) && ("<small>"+smallTexts.join("<br>")+"</small>")
+      var smallText = (smallTexts.length != 0) ? ("<small>"+smallTexts.join("<br>")+"</small>") : ""
       lines.push('<tr><td>'+content.name+'<br>'+smallText+'</td><td>'+markdown(content.paramType)+'</td><td>'+markdown(content.desc)+'</td></tr>')
       break;
     case 'string':

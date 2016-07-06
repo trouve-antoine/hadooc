@@ -51,6 +51,9 @@ It is OK to have some free markdown after an API section. You can use:
 For example, this is an enumeration:
 {-:verb} value
 {=:bold} value
+{=:debug} 
+- there should have no
+- line before the bullet list
 
 ---- {todo} Some comment that won't appear in the HTML unless you explicitly asked for it.
 
