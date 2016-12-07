@@ -100,9 +100,7 @@ program
         })
       } else {
         // use stdout by default
-        for(var i=0; i<outputLines.length; i++) {
-          process.stdout.write(outputLines[i])
-        }
+        process.stdout.write(outputLines.join("\n"))
       }
     }
 

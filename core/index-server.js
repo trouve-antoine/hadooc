@@ -1,6 +1,6 @@
 (function(){
-  
-var debug = function(s){};
+
+var debug = function(s){ };
 
 var path = require('../utils/path')
 
@@ -17,40 +17,40 @@ var getFileContents = function(path, conf) {
   // debug("Read file: " + path + ' with encoding ' + charset + " (#lines = " + lines.length + ")")
   return lines
 }
-  
+
 function getJsDependenciesUrl(jsDependencies, conf) {
   var urls = []
-  
+
   // if(jsDependencies.raphael) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js") }
   // if(jsDependencies.jquery) { urls.push("http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js") }
   // if(jsDependencies.underscoreJs) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js") }
   // if(jsDependencies.lodash) { urls.push("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.8.2/lodash.min.js") }
-  
+
   // if(jsDependencies.flowchartJs) { urls.push("http://flowchart.js.org/flowchart-latest.js") }
   // if(jsDependencies.jsSequenceDiagrams) { urls.push("https://bramp.github.io/js-sequence-diagrams/js/sequence-diagram-min.js") }
   // // if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/master/dist/nomnoml.js") }
   // if(jsDependencies.nomnoml) { urls.push("https://raw.githubusercontent.com/skanaar/nomnoml/7468813b0cbd1d37ecb5c80639843b970221e56d/dist/nomnoml.js") }
-  
+
   var scriptElements = [];
   for(var i=0; i<urls.length; i++) {
     scriptElements.push('<script src="' + urls[i] + '"></script>')
   }
-  
+
   var urlsToInclude = []
-  
+
   if(jsDependencies.raphael) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "raphael-min.js")); }
   if(jsDependencies.jquery) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "jquery.min.js")); }
   if(jsDependencies.underscoreJs) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "underscore-min.js")); }
-  
+
   if(jsDependencies.flowchartJs) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "flowchart.ugly.js")); }
   if(jsDependencies.jsSequenceDiagrams) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "sequence-diagram.ugly.js")); }
   if(jsDependencies.nomnoml) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "static_dependencies", "nomnoml.ugly.js")); }
-  
+
   if(jsDependencies["hadooc-toc"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "toc.js")) }
   if(jsDependencies["hadooc-flowcharts"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "flowcharts.js")) }
   if(jsDependencies["hadooc-sequence-diagrams"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "sequence-diagrams.js")) }
   if(jsDependencies["hadooc-uml-diagrams"]) { urlsToInclude.push(path.join(hadoocPaths.homeFolder, "bootstraps", "uml-diagrams.js")) }
-  
+
   if(urlsToInclude.length != 0) {
     scriptElements.push("<script>")
     for(var i=0; i<urlsToInclude.length; i++) {
@@ -60,7 +60,7 @@ function getJsDependenciesUrl(jsDependencies, conf) {
     }
     scriptElements.push("</script>")
   }
-  
+
   return scriptElements
 }
 
@@ -82,12 +82,12 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
     '  <meta charset="utf-8">',
     '  <title>' + title + '</title>'
   ]
-  
+
   var hasFlowcharts = context.nbOfFlowcharts > 0;
   var hasSequenceDiagrams = context.nbOfSequenceDiagrams > 0;
   var hasUmlDiagrams = context.nbOfUmlDiagrams > 0;
-  
-  htmlLines = htmlLines.concat(getJsDependenciesUrl({
+
+  const js = getJsDependenciesUrl({
     flowchartJs: hasFlowcharts,
     jsSequenceDiagrams: hasSequenceDiagrams,
     raphael: hasFlowcharts || hasSequenceDiagrams,
@@ -99,20 +99,21 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
     "hadooc-flowcharts": hasFlowcharts,
     "hadooc-sequence-diagrams": hasSequenceDiagrams,
     "hadooc-uml-diagrams": hasUmlDiagrams
-  }, hadoocConf))
-  
+  }, hadoocConf)
+  htmlLines = htmlLines.concat(js)
+
   if(hasFlowcharts) {
     scriptLines.push('hadooc.flowcharts.init()')
   }
-  
+
   if(hasSequenceDiagrams) {
     scriptLines.push('hadooc.sequenceDiagrams.init()')
   }
-  
+
   if(hasUmlDiagrams) {
     scriptLines.push('hadooc.umlDiagrams.init()')
   }
-  
+
   if(hadoocConf.shouldPrintToc) {
     scriptLines.push("hadooc.toc.init()")
   }
@@ -176,7 +177,7 @@ function wrapHtmlBody(metadata, bodyLines, context, hadoocConf, callback) {
 
 function processStdin(hadoocConf, callback){
   charset = hadoocConf.charset
-  
+
   hadoocConf = new HadoocConfiguration(hadoocConf)
 
   process.stdin.setEncoding(charset);
@@ -198,7 +199,7 @@ function processStdin(hadoocConf, callback){
 
 function processFile(inputFilePath, hadoocConf, callback) {
   var charset = hadoocConf.charset
-  
+
   hadoocConf = new HadoocConfiguration(hadoocConf)
 
   require('fs').readFile(inputFilePath, charset, function(err, data){
@@ -214,5 +215,5 @@ module.exports = {
   processStdin: processStdin,
   processFile: processFile
 }
-  
+
 })()
